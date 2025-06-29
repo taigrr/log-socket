@@ -1,196 +1,630 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8">
-	</head>
-	<body>
-		<center>
-			<input type="text" id="search" onkeyup="filterTable()" placeholder="Filter...">
-			<input type="checkbox" id="shouldScroll" checked>Enable Autoscroll<br>
-			<table id="logHeaders" style="text-align:left; width:80%;" >
-				<tbody>
-					<tr class="header">
-						<th style="width:20%;">TimeStamp</th>
-						<th style="width:5%;">Level</th>
-						<th style="width:65%;">Output</th>
-						<th style="width:10%;">Source</th>
-					</tr>
-				</tbody>
-			</table>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Log Viewer</title>
+	<style>
+		:root {
+			--primary-color: #2196F3;
+			--error-color: #f44336;
+			--warning-color: #ff9800;
+			--success-color: #4caf50;
+			--info-color: #2196F3;
+			--debug-color: #9c27b0;
+			--trace-color: #607d8b;
+			--bg-primary: #ffffff;
+			--bg-secondary: #f5f5f5;
+			--text-primary: #333333;
+			--text-secondary: #666666;
+			--border-color: #e0e0e0;
+			--shadow: 0 2px 4px rgba(0,0,0,0.1);
+			--shadow-hover: 0 4px 8px rgba(0,0,0,0.15);
+		}
 
-			<div id="tableWrapper">
-				<table id="logs" style="text-align:left; width:100%;" >
-					<tbody id="tbodylogs">
-						<tr class="header">
-							<th style="width:20%;"></th>
-							<th style="width:5%;"></th>
-							<th style="width:65%;"></th>
-							<th style="width:10%;"></th>
-						</tr>
+		* {
+			box-sizing: border-box;
+		}
 
-					</tbody>
-				</table>
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+			background-color: var(--bg-secondary);
+			color: var(--text-primary);
+			line-height: 1.6;
+		}
+
+		.container {
+			max-width: 1400px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		.header {
+			background: var(--bg-primary);
+			padding: 20px;
+			border-radius: 8px;
+			box-shadow: var(--shadow);
+			margin-bottom: 20px;
+		}
+
+		.header h1 {
+			margin: 0 0 20px 0;
+			color: var(--text-primary);
+			font-size: 24px;
+			font-weight: 600;
+		}
+
+		.controls {
+			display: flex;
+			gap: 15px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		.search-container {
+			position: relative;
+			flex: 1;
+			min-width: 250px;
+		}
+
+		.search-input {
+			width: 100%;
+			padding: 10px 15px;
+			border: 2px solid var(--border-color);
+			border-radius: 6px;
+			font-size: 14px;
+			transition: border-color 0.2s ease;
+		}
+
+		.search-input:focus {
+			outline: none;
+			border-color: var(--primary-color);
+		}
+
+		.checkbox-container {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			user-select: none;
+		}
+
+		.checkbox-container input[type="checkbox"] {
+			width: 16px;
+			height: 16px;
+		}
+
+		.checkbox-container label {
+			font-size: 14px;
+			color: var(--text-secondary);
+			cursor: pointer;
+		}
+
+		.log-container {
+			background: var(--bg-primary);
+			border-radius: 8px;
+			box-shadow: var(--shadow);
+			overflow: hidden;
+			margin-bottom: 20px;
+		}
+
+		.log-header {
+			background: var(--bg-secondary);
+			padding: 12px 0;
+			border-bottom: 1px solid var(--border-color);
+			font-weight: 600;
+			font-size: 12px;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+
+		.log-table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		.log-row {
+			display: grid;
+			grid-template-columns: 180px 80px 1fr 120px;
+			gap: 15px;
+			padding: 10px 15px;
+			border-bottom: 1px solid var(--border-color);
+			transition: background-color 0.2s ease;
+		}
+
+		.log-row:hover {
+			background-color: rgba(0,0,0,0.02);
+		}
+
+		.log-cell {
+			display: flex;
+			align-items: center;
+			font-size: 13px;
+			word-break: break-word;
+		}
+
+		.log-cell.timestamp {
+			font-family: 'Monaco', 'Menlo', monospace;
+			color: var(--text-secondary);
+			font-size: 12px;
+		}
+
+		.log-cell.level {
+			font-weight: 600;
+			text-align: center;
+			justify-content: center;
+		}
+
+		.log-cell.output {
+			font-family: 'Monaco', 'Menlo', monospace;
+			white-space: pre-wrap;
+		}
+
+		.log-cell.source {
+			font-size: 11px;
+			color: var(--text-secondary);
+		}
+
+		.log-level-error { background-color: #ffebee; color: var(--error-color); }
+		.log-level-warn { background-color: #fff3e0; color: var(--warning-color); }
+		.log-level-info { background-color: #e3f2fd; color: var(--info-color); }
+		.log-level-debug { background-color: #f3e5f5; color: var(--debug-color); }
+		.log-level-trace { background-color: #eceff1; color: var(--trace-color); }
+
+		.log-viewer {
+			height: 60vh;
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
+
+		.log-viewer::-webkit-scrollbar {
+			width: 8px;
+		}
+
+		.log-viewer::-webkit-scrollbar-track {
+			background: var(--bg-secondary);
+		}
+
+		.log-viewer::-webkit-scrollbar-thumb {
+			background: #ccc;
+			border-radius: 4px;
+		}
+
+		.log-viewer::-webkit-scrollbar-thumb:hover {
+			background: #999;
+		}
+
+		.actions {
+			display: flex;
+			gap: 10px;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			padding: 10px 20px;
+			border: none;
+			border-radius: 6px;
+			font-size: 14px;
+			font-weight: 500;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			text-decoration: none;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.btn:hover {
+			transform: translateY(-1px);
+			box-shadow: var(--shadow-hover);
+		}
+
+		.btn:active {
+			transform: translateY(0);
+		}
+
+		.btn-primary {
+			background-color: var(--primary-color);
+			color: white;
+		}
+
+		.btn-danger {
+			background-color: var(--error-color);
+			color: white;
+		}
+
+		.status-bar {
+			background: var(--bg-primary);
+			padding: 10px 20px;
+			border-radius: 6px;
+			box-shadow: var(--shadow);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 12px;
+			color: var(--text-secondary);
+		}
+
+		.connection-status {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.status-indicator {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background-color: var(--error-color);
+		}
+
+		.status-indicator.connected {
+			background-color: var(--success-color);
+		}
+
+		.empty-state {
+			text-align: center;
+			padding: 40px 20px;
+			color: var(--text-secondary);
+		}
+
+		.empty-state h3 {
+			margin: 0 0 10px 0;
+			font-size: 18px;
+		}
+
+		.empty-state p {
+			margin: 0;
+			font-size: 14px;
+		}
+
+		@media (max-width: 768px) {
+			.container {
+				padding: 10px;
+			}
+
+			.controls {
+				flex-direction: column;
+				align-items: stretch;
+			}
+
+			.log-row {
+				grid-template-columns: 1fr;
+				gap: 5px;
+			}
+
+			.log-cell.timestamp::before {
+				content: 'Time: ';
+				font-weight: 600;
+			}
+
+			.log-cell.level::before {
+				content: 'Level: ';
+				font-weight: 600;
+			}
+
+			.log-cell.source::before {
+				content: 'Source: ';
+				font-weight: 600;
+			}
+
+			.log-header {
+				display: none;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<header class="header">
+			<h1>📊 Log Viewer</h1>
+			<div class="controls">
+				<div class="search-container">
+					<input 
+						type="text" 
+						id="search" 
+						class="search-input"
+						placeholder="🔍 Filter logs..."
+						aria-label="Filter logs"
+					>
+				</div>
+				<div class="checkbox-container">
+					<input type="checkbox" id="shouldScroll" checked>
+					<label for="shouldScroll">Auto-scroll</label>
+				</div>
 			</div>
-			<br>
-			<input class="button" type="button" id="download" value="Download Logs" style="background-color:#3f51b5;"/>
-			<input class="button" type="button" id="delete" value="Delete Logs" style="background-color:#f44336"/>
-		</center>
-	</body>
-	<footer>
-		<style>
-#tableWrapper{
-	overflow-y: scroll;
-	display: flow-root;
-	width: 80%;
-	height: 80vh;
-}
-td,tr{
-	height: min-content;
-}
-.button{
-	display: inline-block;
-	width: 5vw;
-	height: 5vh;
-}
-		</style>
-		<script>  
-			var logTable = document.getElementById("logs");
-			var logTableB = document.getElementById("tbodylogs");
-			var ws = null;
-			var application = "demo-commit"
-			var logs = [];
-			function sleep(ms) {
-				return new Promise(resolve => setTimeout(resolve, ms));
-			}
-			function download(filename, text) {
-				var element = document.createElement('a');
-				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-				element.setAttribute('download', filename);
-				element.style.display = 'none';
-				document.body.appendChild(element);
-				element.click();
-				document.body.removeChild(element);
-			}
-			function openSocket() {
-				if (ws) {
-					return false;
-				}
-				ws = new WebSocket("{{.}}");
-				ws.onclose = async function(evt) {
-					ws = null;
-					while(ws == null){
-						openSocket()
-						await sleep(5000);
-					}
-				}
-				ws.onmessage = function(evt) {
-					var entry = JSON.parse(evt.data)
-					logs.push(entry)
-					var row = document.createElement('tr');
-					var ts = document.createElement('td');
-					var tst = document.createTextNode(entry.timestamp);
-					ts.appendChild(tst);
-					row.appendChild(ts);
-					var ts = document.createElement('td');
-					var tst = document.createTextNode(entry.level);
-					ts.appendChild(tst);
-					row.appendChild(ts);
-					var ts = document.createElement('td');
-					var tst = document.createTextNode(entry.output);
-					ts.appendChild(tst);
-					row.appendChild(ts);
-					var ts = document.createElement('td');
-					var tst = document.createTextNode(entry.file);
-					ts.appendChild(tst);
-					row.appendChild(ts);
-					var bg="";
-					switch(entry.level){
-						case "INFO":
-							bg="white";
-							break;
-						case "ERROR":
-							bg="#f44336";
-							break;
-						case "WARN":
-							bg="#fb8c00"
-							break;
-						case "TRACE":
-							bg="#E1F5FE"
-							break;
-						case "DEBUG":
-							bg="#B3E5FC"
-							break;
-						default:
-							bg="white"
-							break;
-					}
-					row.style.backgroundColor=bg
-					logTableB.append(row)
-					filterTable()
-				}
-				ws.onerror = function(evt) {
-					if (evt != null && evt.data != null){
-						// handle error here
-					}
-				}
-			}
-			function clearTable(){
-				if(!window.confirm("Are you sure you want to delete all logs?")){
-					return
-				}
-				logs = []
+		</header>
 
-				while (logTableB.childNodes.length > 1) {
-					logTableB.removeChild(logTableB.childNodes[1]);
-				}
+		<div class="log-container">
+			<div class="log-header">
+				<div class="log-row">
+					<div class="log-cell">Timestamp</div>
+					<div class="log-cell">Level</div>
+					<div class="log-cell">Message</div>
+					<div class="log-cell">Source</div>
+				</div>
+			</div>
+			
+			<div id="logViewer" class="log-viewer">
+				<div id="emptyState" class="empty-state">
+					<h3>No logs yet</h3>
+					<p>Waiting for log entries...</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="actions">
+			<button id="downloadBtn" class="btn btn-primary">
+				📥 Download Logs
+			</button>
+			<button id="clearBtn" class="btn btn-danger">
+				🗑️ Clear Logs
+			</button>
+		</div>
+
+		<div class="status-bar">
+			<div class="connection-status">
+				<span class="status-indicator" id="statusIndicator"></span>
+				<span id="connectionStatus">Connecting...</span>
+			</div>
+			<div id="logCount">0 logs</div>
+		</div>
+	</div>
+
+	<script>
+		class LogViewer {
+			constructor() {
+				this.ws = null;
+				this.logs = [];
+				this.filteredLogs = [];
+				this.isConnected = false;
+				this.reconnectAttempts = 0;
+				this.maxReconnectAttempts = 5;
+				
+				this.initializeElements();
+				this.attachEventListeners();
+				this.connectWebSocket();
+				this.startAutoScroll();
 			}
-			function filterTable() {
-				var cols, input, filter, table, tr, td, i, txtValue, w;
-				input = document.getElementById("search");
-				filter = input.value;
-				table = logTableB;
-				tr = table.getElementsByTagName("tr");
-				for (i = 1; i < tr.length; i++) {
-					cols = tr[i].getElementsByTagName("td");
-					var visible = false;
-					for (w = 0; w < cols.length; w++){
-						if (!visible && cols[w]) {
-							td = cols[w]
-							txtValue = td.textContent || td.innerText;
-							if (txtValue.indexOf(filter) > -1) {
-								visible = true
-							} 
+
+			initializeElements() {
+				this.logViewer = document.getElementById('logViewer');
+				this.emptyState = document.getElementById('emptyState');
+				this.searchInput = document.getElementById('search');
+				this.scrollCheckbox = document.getElementById('shouldScroll');
+				this.downloadBtn = document.getElementById('downloadBtn');
+				this.clearBtn = document.getElementById('clearBtn');
+				this.statusIndicator = document.getElementById('statusIndicator');
+				this.connectionStatus = document.getElementById('connectionStatus');
+				this.logCount = document.getElementById('logCount');
+			}
+
+			attachEventListeners() {
+				this.searchInput.addEventListener('input', this.debounce(() => this.filterLogs(), 300));
+				this.downloadBtn.addEventListener('click', () => this.downloadLogs());
+				this.clearBtn.addEventListener('click', () => this.clearLogs());
+			}
+
+			connectWebSocket() {
+				if (this.ws) return;
+
+				try {
+					this.ws = new WebSocket("{{.}}");
+					this.updateConnectionStatus('Connecting...', false);
+
+					this.ws.onopen = () => {
+						this.isConnected = true;
+						this.reconnectAttempts = 0;
+						this.updateConnectionStatus('Connected', true);
+					};
+
+					this.ws.onmessage = (event) => {
+						try {
+							const logEntry = JSON.parse(event.data);
+							this.addLogEntry(logEntry);
+						} catch (error) {
+							console.error('Failed to parse log entry:', error);
 						}
-					}
-					if(visible){
+					};
 
-						tr[i].style.display = "";
-					} else {
+					this.ws.onclose = () => {
+						this.isConnected = false;
+						this.ws = null;
+						this.updateConnectionStatus('Disconnected', false);
+						this.scheduleReconnect();
+					};
 
-						tr[i].style.display = "none";
-					}
+					this.ws.onerror = (error) => {
+						console.error('WebSocket error:', error);
+						this.updateConnectionStatus('Connection Error', false);
+					};
 
+				} catch (error) {
+					console.error('Failed to create WebSocket:', error);
+					this.updateConnectionStatus('Connection Failed', false);
+					this.scheduleReconnect();
 				}
 			}
-			function pageScroll() {
-				if (document.getElementById('shouldScroll').checked) {
-					document.getElementById('tableWrapper').scrollBy(0,10);
 
+			scheduleReconnect() {
+				if (this.reconnectAttempts < this.maxReconnectAttempts) {
+					this.reconnectAttempts++;
+					const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+					
+					this.updateConnectionStatus(`Reconnecting in ${Math.ceil(delay/1000)}s...`, false);
+					
+					setTimeout(() => {
+						this.connectWebSocket();
+					}, delay);
+				} else {
+					this.updateConnectionStatus('Connection Failed', false);
 				}
-				setTimeout(pageScroll,10);
 			}
 
-			document.getElementById("delete").addEventListener("click", function(){
+			addLogEntry(entry) {
+				this.logs.push(entry);
+				this.updateLogCount();
+				
+				if (this.matchesFilter(entry)) {
+					this.renderLogEntry(entry);
+					this.hideEmptyState();
+				}
+			}
 
-				clearTable()
-			}, false);
-			document.getElementById("download").addEventListener("click", function(){
+			renderLogEntry(entry) {
+				const logRow = document.createElement('div');
+				logRow.className = `log-row log-level-${entry.level.toLowerCase()}`;
+				
+				logRow.innerHTML = `
+					<div class="log-cell timestamp">${this.formatTimestamp(entry.timestamp)}</div>
+					<div class="log-cell level">${entry.level}</div>
+					<div class="log-cell output">${this.escapeHtml(entry.output)}</div>
+					<div class="log-cell source">${this.escapeHtml(entry.file || 'N/A')}</div>
+				`;
 
-				download(application+'.json',JSON.stringify(logs));
-			}, false);
-			openSocket();
-			pageScroll();
-		</script>
+				this.logViewer.appendChild(logRow);
+			}
 
-	</footer>
+			formatTimestamp(timestamp) {
+				try {
+					const date = new Date(timestamp);
+					return date.toLocaleString();
+				} catch {
+					return timestamp;
+				}
+			}
+
+			escapeHtml(text) {
+				const div = document.createElement('div');
+				div.textContent = text;
+				return div.innerHTML;
+			}
+
+			filterLogs() {
+				const query = this.searchInput.value.toLowerCase().trim();
+				
+				// Clear current display
+				this.clearLogDisplay();
+				
+				if (!query) {
+					// Show all logs
+					this.logs.forEach(log => this.renderLogEntry(log));
+				} else {
+					// Show filtered logs
+					const filtered = this.logs.filter(log => 
+						this.matchesQuery(log, query)
+					);
+					filtered.forEach(log => this.renderLogEntry(log));
+				}
+
+				if (this.logViewer.children.length === 0 || 
+					(this.logViewer.children.length === 1 && this.logViewer.contains(this.emptyState))) {
+					this.showEmptyState();
+				} else {
+					this.hideEmptyState();
+				}
+			}
+
+			matchesFilter(entry) {
+				const query = this.searchInput.value.toLowerCase().trim();
+				return !query || this.matchesQuery(entry, query);
+			}
+
+			matchesQuery(entry, query) {
+				return (
+					entry.output.toLowerCase().includes(query) ||
+					entry.level.toLowerCase().includes(query) ||
+					(entry.file && entry.file.toLowerCase().includes(query)) ||
+					entry.timestamp.toLowerCase().includes(query)
+				);
+			}
+
+			clearLogDisplay() {
+				while (this.logViewer.firstChild && this.logViewer.firstChild !== this.emptyState) {
+					this.logViewer.removeChild(this.logViewer.firstChild);
+				}
+			}
+
+			showEmptyState() {
+				if (!this.logViewer.contains(this.emptyState)) {
+					this.logViewer.appendChild(this.emptyState);
+				}
+			}
+
+			hideEmptyState() {
+				if (this.logViewer.contains(this.emptyState)) {
+					this.logViewer.removeChild(this.emptyState);
+				}
+			}
+
+			clearLogs() {
+				if (!confirm('Are you sure you want to clear all logs?')) return;
+				
+				this.logs = [];
+				this.clearLogDisplay();
+				this.showEmptyState();
+				this.updateLogCount();
+			}
+
+			downloadLogs() {
+				if (this.logs.length === 0) {
+					alert('No logs to download');
+					return;
+				}
+
+				const dataStr = JSON.stringify(this.logs, null, 2);
+				const dataBlob = new Blob([dataStr], { type: 'application/json' });
+				
+				const link = document.createElement('a');
+				link.href = URL.createObjectURL(dataBlob);
+				link.download = `logs-${new Date().toISOString().split('T')[0]}.json`;
+				
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				
+				URL.revokeObjectURL(link.href);
+			}
+
+			updateConnectionStatus(status, connected) {
+				this.connectionStatus.textContent = status;
+				this.statusIndicator.classList.toggle('connected', connected);
+			}
+
+			updateLogCount() {
+				const count = this.logs.length;
+				this.logCount.textContent = `${count} log${count !== 1 ? 's' : ''}`;
+			}
+
+			startAutoScroll() {
+				const autoScroll = () => {
+					if (this.scrollCheckbox.checked && this.isConnected) {
+						this.logViewer.scrollTop = this.logViewer.scrollHeight;
+					}
+					requestAnimationFrame(autoScroll);
+				};
+				autoScroll();
+			}
+
+			debounce(func, wait) {
+				let timeout;
+				return function executedFunction(...args) {
+					const later = () => {
+						clearTimeout(timeout);
+						func(...args);
+					};
+					clearTimeout(timeout);
+					timeout = setTimeout(later, wait);
+				};
+			}
+		}
+
+		// Initialize the log viewer when the page loads
+		document.addEventListener('DOMContentLoaded', () => {
+			new LogViewer();
+		});
+	</script>
+</body>
 </html>
