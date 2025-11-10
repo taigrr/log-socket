@@ -126,7 +126,7 @@
 
 		.log-row {
 			display: grid;
-			grid-template-columns: 180px 80px 1fr 120px;
+			grid-template-columns: 180px 80px 100px 1fr 120px;
 			gap: 15px;
 			padding: 10px 15px;
 			border-bottom: 1px solid var(--border-color);
@@ -322,6 +322,17 @@
 			<h1>📊 Log Viewer</h1>
 			<div class="controls">
 				<div class="search-container">
+					<select 
+						id="namespaceFilter" 
+						class="search-input"
+						multiple
+						size="1"
+						aria-label="Filter by namespace"
+					>
+						<option value="">All Namespaces (loading...)</option>
+					</select>
+				</div>
+				<div class="search-container">
 					<input 
 						type="text" 
 						id="search" 
@@ -334,6 +345,9 @@
 					<input type="checkbox" id="shouldScroll" checked>
 					<label for="shouldScroll">Auto-scroll</label>
 				</div>
+				<button id="reconnectBtn" class="btn btn-primary">
+					🔄 Reconnect
+				</button>
 			</div>
 		</header>
 
@@ -342,6 +356,7 @@
 				<div class="log-row">
 					<div class="log-cell">Timestamp</div>
 					<div class="log-cell">Level</div>
+					<div class="log-cell">Namespace</div>
 					<div class="log-cell">Message</div>
 					<div class="log-cell">Source</div>
 				</div>
@@ -385,6 +400,7 @@
 				
 				this.initializeElements();
 				this.attachEventListeners();
+				this.fetchNamespaces();
 				this.connectWebSocket();
 				this.startAutoScroll();
 			}
@@ -392,10 +408,12 @@
 			initializeElements() {
 				this.logViewer = document.getElementById('logViewer');
 				this.emptyState = document.getElementById('emptyState');
+				this.namespaceFilter = document.getElementById('namespaceFilter');
 				this.searchInput = document.getElementById('search');
 				this.scrollCheckbox = document.getElementById('shouldScroll');
 				this.downloadBtn = document.getElementById('downloadBtn');
 				this.clearBtn = document.getElementById('clearBtn');
+				this.reconnectBtn = document.getElementById('reconnectBtn');
 				this.statusIndicator = document.getElementById('statusIndicator');
 				this.connectionStatus = document.getElementById('connectionStatus');
 				this.logCount = document.getElementById('logCount');
@@ -403,15 +421,61 @@
 
 			attachEventListeners() {
 				this.searchInput.addEventListener('input', this.debounce(() => this.filterLogs(), 300));
+				this.namespaceFilter.addEventListener('change', () => this.reconnectWithNamespace());
 				this.downloadBtn.addEventListener('click', () => this.downloadLogs());
 				this.clearBtn.addEventListener('click', () => this.clearLogs());
+				this.reconnectBtn.addEventListener('click', () => this.reconnectWithNamespace());
+			}
+
+			async fetchNamespaces() {
+				try {
+					const response = await fetch('/api/namespaces');
+					const data = await response.json();
+					this.updateNamespaceFilter(data.namespaces || []);
+				} catch (error) {
+					console.error('Failed to fetch namespaces:', error);
+				}
+			}
+
+			updateNamespaceFilter(namespaces) {
+				// Clear existing options
+				this.namespaceFilter.innerHTML = '';
+				
+				// Add "All" option
+				const allOption = document.createElement('option');
+				allOption.value = '';
+				allOption.textContent = 'All Namespaces';
+				allOption.selected = true;
+				this.namespaceFilter.appendChild(allOption);
+				
+				// Add namespace options
+				namespaces.sort().forEach(ns => {
+					const option = document.createElement('option');
+					option.value = ns;
+					option.textContent = ns;
+					this.namespaceFilter.appendChild(option);
+				});
 			}
 
 			connectWebSocket() {
 				if (this.ws) return;
 
 				try {
-					this.ws = new WebSocket("{{.}}");
+					let wsUrl = "{{.}}";
+					
+					// Get selected namespace options from multi-select
+					const selectedOptions = Array.from(this.namespaceFilter.selectedOptions)
+						.map(opt => opt.value)
+						.filter(val => val !== ''); // Remove empty "All" option
+					
+					// Add namespace filter if specific namespaces selected
+					if (selectedOptions.length > 0) {
+						const namespaces = selectedOptions.join(',');
+						const separator = wsUrl.includes('?') ? '&' : '?';
+						wsUrl += `${separator}namespaces=${encodeURIComponent(namespaces)}`;
+					}
+					
+					this.ws = new WebSocket(wsUrl);
 					this.updateConnectionStatus('Connecting...', false);
 
 					this.ws.onopen = () => {
@@ -448,6 +512,16 @@
 				}
 			}
 
+			reconnectWithNamespace() {
+				if (this.ws) {
+					this.ws.onclose = null; // Prevent auto-reconnect
+					this.ws.close();
+					this.ws = null;
+				}
+				this.reconnectAttempts = 0;
+				this.connectWebSocket();
+			}
+
 			scheduleReconnect() {
 				if (this.reconnectAttempts < this.maxReconnectAttempts) {
 					this.reconnectAttempts++;
@@ -480,6 +554,7 @@
 				logRow.innerHTML = `
 					<div class="log-cell timestamp">${this.formatTimestamp(entry.timestamp)}</div>
 					<div class="log-cell level">${entry.level}</div>
+					<div class="log-cell namespace">${this.escapeHtml(entry.namespace || 'default')}</div>
 					<div class="log-cell output">${this.escapeHtml(entry.output)}</div>
 					<div class="log-cell source">${this.escapeHtml(entry.file || 'N/A')}</div>
 				`;
@@ -536,6 +611,7 @@
 				return (
 					entry.output.toLowerCase().includes(query) ||
 					entry.level.toLowerCase().includes(query) ||
+					(entry.namespace && entry.namespace.toLowerCase().includes(query)) ||
 					(entry.file && entry.file.toLowerCase().includes(query)) ||
 					entry.timestamp.toLowerCase().includes(query)
 				);

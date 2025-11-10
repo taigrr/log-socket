@@ -16,10 +16,13 @@ var (
 	stderrClient   *Client
 	cleanup        sync.Once
 	stderrFinished chan bool
+	namespaces     map[string]bool
+	namespacesMux  sync.RWMutex
 )
 
 func init() {
-	stderrClient = CreateClient()
+	namespaces = make(map[string]bool)
+	stderrClient = CreateClient(DefaultNamespace)
 	stderrClient.SetLogLevel(LTrace)
 	stderrFinished = make(chan bool, 1)
 	go stderrClient.logStdErr()
@@ -27,16 +30,30 @@ func init() {
 
 func (c *Client) logStdErr() {
 	for e := range c.writer {
-		if e.level >= c.LogLevel {
-			fmt.Fprintf(os.Stderr, "%s\t%s\t%s\t%s\n", e.Timestamp.String(), e.Level, e.Output, e.File)
+		if e.level >= c.LogLevel && c.matchesNamespace(e.Namespace) {
+			fmt.Fprintf(os.Stderr, "%s\t%s\t[%s]\t%s\t%s\n", e.Timestamp.String(), e.Level, e.Namespace, e.Output, e.File)
 		}
 	}
 	stderrFinished <- true
 }
 
-func CreateClient() *Client {
+func (c *Client) matchesNamespace(namespace string) bool {
+	// Empty Namespaces slice means match all
+	if len(c.Namespaces) == 0 {
+		return true
+	}
+	for _, ns := range c.Namespaces {
+		if ns == namespace {
+			return true
+		}
+	}
+	return false
+}
+
+func CreateClient(namespaces ...string) *Client {
 	var client Client
 	client.initialized = true
+	client.Namespaces = namespaces
 	client.writer = make(LogWriter, 1000)
 	sliceTex.Lock()
 	clients = append(clients, &client)
@@ -78,9 +95,18 @@ func (c *Client) GetLogLevel() Level {
 }
 
 func createLog(e Entry) {
+	// Track namespace
+	namespacesMux.Lock()
+	namespaces[e.Namespace] = true
+	namespacesMux.Unlock()
+	
 	sliceTex.Lock()
 	for _, c := range clients {
 		func(c *Client, e Entry) {
+			// Filter by namespace if client has filters specified
+			if !c.matchesNamespace(e.Namespace) {
+				return
+			}
 			select {
 			case c.writer <- e:
 				// try to clear out one of the older entries
@@ -94,6 +120,18 @@ func createLog(e Entry) {
 		}(c, e)
 	}
 	sliceTex.Unlock()
+}
+
+// GetNamespaces returns a list of all namespaces that have been used
+func GetNamespaces() []string {
+	namespacesMux.RLock()
+	defer namespacesMux.RUnlock()
+	
+	result := make([]string, 0, len(namespaces))
+	for ns := range namespaces {
+		result = append(result, ns)
+	}
+	return result
 }
 
 func SetLogLevel(level Level) {
@@ -123,6 +161,7 @@ func Trace(args ...any) {
 		Output:    output,
 		File:      fileInfo(2),
 		Level:     "TRACE",
+		Namespace: DefaultNamespace,
 		level:     LTrace,
 	}
 	createLog(e)
@@ -137,6 +176,7 @@ func Tracef(format string, args ...any) {
 		File:      fileInfo(2),
 		Level:     "TRACE",
 		level:     LTrace,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -150,6 +190,7 @@ func Traceln(args ...any) {
 		File:      fileInfo(2),
 		Level:     "TRACE",
 		level:     LTrace,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -163,6 +204,7 @@ func Debug(args ...any) {
 		File:      fileInfo(2),
 		Level:     "DEBUG",
 		level:     LDebug,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -176,6 +218,7 @@ func Debugf(format string, args ...any) {
 		File:      fileInfo(2),
 		Level:     "DEBUG",
 		level:     LDebug,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -189,6 +232,7 @@ func Debugln(args ...any) {
 		File:      fileInfo(2),
 		Level:     "DEBUG",
 		level:     LDebug,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -202,6 +246,7 @@ func Info(args ...any) {
 		File:      fileInfo(2),
 		Level:     "INFO",
 		level:     LInfo,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -215,6 +260,7 @@ func Infof(format string, args ...any) {
 		File:      fileInfo(2),
 		Level:     "INFO",
 		level:     LInfo,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -228,6 +274,7 @@ func Infoln(args ...any) {
 		File:      fileInfo(2),
 		Level:     "INFO",
 		level:     LInfo,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -241,6 +288,7 @@ func Notice(args ...any) {
 		File:      fileInfo(2),
 		Level:     "NOTICE",
 		level:     LNotice,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -254,6 +302,7 @@ func Noticef(format string, args ...any) {
 		File:      fileInfo(2),
 		Level:     "NOTICE",
 		level:     LNotice,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -267,6 +316,7 @@ func Noticeln(args ...any) {
 		File:      fileInfo(2),
 		Level:     "NOTICE",
 		level:     LNotice,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -280,6 +330,7 @@ func Warn(args ...any) {
 		File:      fileInfo(2),
 		Level:     "WARN",
 		level:     LWarn,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -293,6 +344,7 @@ func Warnf(format string, args ...any) {
 		File:      fileInfo(2),
 		Level:     "WARN",
 		level:     LWarn,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -306,6 +358,7 @@ func Warnln(args ...any) {
 		File:      fileInfo(2),
 		Level:     "WARN",
 		level:     LWarn,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -319,6 +372,7 @@ func Error(args ...any) {
 		File:      fileInfo(2),
 		Level:     "ERROR",
 		level:     LError,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -332,6 +386,7 @@ func Errorf(format string, args ...any) {
 		File:      fileInfo(2),
 		Level:     "ERROR",
 		level:     LError,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -345,6 +400,7 @@ func Errorln(args ...any) {
 		File:      fileInfo(2),
 		Level:     "ERROR",
 		level:     LError,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 }
@@ -358,6 +414,7 @@ func Panic(args ...any) {
 		File:      fileInfo(2),
 		Level:     "PANIC",
 		level:     LPanic,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 	if len(args) >= 0 {
@@ -381,6 +438,7 @@ func Panicf(format string, args ...any) {
 		File:      fileInfo(2),
 		Level:     "PANIC",
 		level:     LPanic,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 	if len(args) >= 0 {
@@ -403,6 +461,7 @@ func Panicln(args ...any) {
 		File:      fileInfo(2),
 		Level:     "PANIC",
 		level:     LPanic,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 	if len(args) >= 0 {
@@ -426,6 +485,7 @@ func Fatal(args ...any) {
 		File:      fileInfo(2),
 		Level:     "FATAL",
 		level:     LFatal,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 	Flush()
@@ -441,6 +501,7 @@ func Fatalf(format string, args ...any) {
 		File:      fileInfo(2),
 		Level:     "FATAL",
 		level:     LFatal,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 	Flush()
@@ -455,6 +516,7 @@ func Fatalln(args ...any) {
 		File:      fileInfo(2),
 		Level:     "FATAL",
 		level:     LFatal,
+		Namespace: DefaultNamespace,
 	}
 	createLog(e)
 	Flush()

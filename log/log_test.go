@@ -13,7 +13,7 @@ func TestCreateDestroy(t *testing.T) {
 		t.Errorf("Expected 1 client, but found %d", len(clients))
 	}
 	// Create a new client, ensure it's added
-	c := CreateClient()
+	c := CreateClient("test")
 	if len(clients) != 2 {
 		t.Errorf("Expected 2 clients, but found %d", len(clients))
 	}
@@ -27,7 +27,7 @@ func TestCreateDestroy(t *testing.T) {
 // SetLogLevel set log level of logger
 func TestSetLogLevel(t *testing.T) {
 	logLevels := [...]Level{LTrace, LDebug, LInfo, LWarn, LError, LPanic, LFatal}
-	c := CreateClient()
+	c := CreateClient("test")
 	for _, x := range logLevels {
 		c.SetLogLevel(x)
 		if c.GetLogLevel() != x {
@@ -38,7 +38,7 @@ func TestSetLogLevel(t *testing.T) {
 }
 
 func BenchmarkDebugSerial(b *testing.B) {
-	c := CreateClient()
+	c := CreateClient("test")
 	var x sync.WaitGroup
 	x.Add(b.N)
 	for i := 0; i < b.N; i++ {
@@ -55,7 +55,7 @@ func BenchmarkDebugSerial(b *testing.B) {
 // Trace ensure logs come out in the right order
 func TestOrder(t *testing.T) {
 	testString := "Testing trace: "
-	c := CreateClient()
+	c := CreateClient(DefaultNamespace)
 	c.SetLogLevel(LTrace)
 
 	for i := 0; i < 5000; i++ {

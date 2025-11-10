@@ -8,7 +8,14 @@ import (
 )
 
 func Default() *Logger {
-	return &Logger{FileInfoDepth: 0}
+	return &Logger{FileInfoDepth: 0, Namespace: DefaultNamespace}
+}
+
+func NewLogger(namespace string) *Logger {
+	if namespace == "" {
+		namespace = DefaultNamespace
+	}
+	return &Logger{FileInfoDepth: 0, Namespace: namespace}
 }
 
 func (l *Logger) SetInfoDepth(depth int) {
@@ -24,6 +31,7 @@ func (l Logger) Trace(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "TRACE",
 		level:     LTrace,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -37,6 +45,7 @@ func (l Logger) Tracef(format string, args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "TRACE",
 		level:     LTrace,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -50,6 +59,7 @@ func (l Logger) Traceln(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "TRACE",
 		level:     LTrace,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -63,6 +73,7 @@ func (l Logger) Debug(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "DEBUG",
 		level:     LDebug,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -76,6 +87,7 @@ func (l Logger) Debugf(format string, args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "DEBUG",
 		level:     LDebug,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -89,6 +101,7 @@ func (l Logger) Info(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "INFO",
 		level:     LInfo,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -102,6 +115,7 @@ func (l Logger) Infof(format string, args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "INFO",
 		level:     LInfo,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -115,6 +129,7 @@ func (l Logger) Infoln(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "INFO",
 		level:     LInfo,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -128,6 +143,7 @@ func (l Logger) Notice(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "NOTICE",
 		level:     LNotice,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -141,6 +157,7 @@ func (l Logger) Noticef(format string, args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "NOTICE",
 		level:     LNotice,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -154,6 +171,7 @@ func (l Logger) Noticeln(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "NOTICE",
 		level:     LNotice,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -167,6 +185,7 @@ func (l Logger) Warn(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "WARN",
 		level:     LWarn,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -180,6 +199,7 @@ func (l Logger) Warnf(format string, args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "WARN",
 		level:     LWarn,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -193,6 +213,7 @@ func (l Logger) Warnln(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "WARN",
 		level:     LWarn,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -206,6 +227,7 @@ func (l Logger) Error(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "ERROR",
 		level:     LError,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -219,6 +241,7 @@ func (l Logger) Errorf(format string, args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "ERROR",
 		level:     LError,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -232,6 +255,7 @@ func (l Logger) Errorln(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "ERROR",
 		level:     LError,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 }
@@ -245,6 +269,7 @@ func (l Logger) Panic(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "PANIC",
 		level:     LPanic,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 	if len(args) >= 0 {
@@ -268,6 +293,7 @@ func (l Logger) Panicf(format string, args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "PANIC",
 		level:     LPanic,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 	if len(args) >= 0 {
@@ -291,6 +317,7 @@ func (l Logger) Panicln(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "PANIC",
 		level:     LPanic,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 	if len(args) >= 0 {
@@ -314,6 +341,7 @@ func (l Logger) Fatal(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "FATAL",
 		level:     LFatal,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 	Flush()
@@ -329,6 +357,7 @@ func (l Logger) Fatalf(format string, args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "FATAL",
 		level:     LFatal,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 	Flush()
@@ -344,6 +373,7 @@ func (l Logger) Fatalln(args ...any) {
 		File:      fileInfo(l.FileInfoDepth),
 		Level:     "FATAL",
 		level:     LFatal,
+		Namespace: l.Namespace,
 	}
 	createLog(e)
 	Flush()
