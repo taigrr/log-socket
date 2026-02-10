@@ -2,7 +2,6 @@ package log
 
 import (
 	"strconv"
-	"sync"
 	"testing"
 )
 
@@ -34,21 +33,6 @@ func TestSetLogLevel(t *testing.T) {
 			t.Errorf("Got logLevel %d, but expected %d", int(c.GetLogLevel()), int(x))
 		}
 	}
-	c.Destroy()
-}
-
-func BenchmarkDebugSerial(b *testing.B) {
-	c := CreateClient("test")
-	var x sync.WaitGroup
-	x.Add(b.N)
-	for i := 0; i < b.N; i++ {
-		Debug(i)
-		go func() {
-			c.Get()
-			x.Done()
-		}()
-	}
-	x.Wait()
 	c.Destroy()
 }
 

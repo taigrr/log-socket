@@ -17,21 +17,21 @@ func generateLogs() {
 	apiLogger := logger.NewLogger("api")
 	dbLogger := logger.NewLogger("database")
 	authLogger := logger.NewLogger("auth")
-	
+
 	for {
 		logger.Info("This is a default namespace log!")
 		apiLogger.Info("API request received")
 		apiLogger.Debug("Processing API call")
-		
+
 		dbLogger.Info("Database query executed")
 		dbLogger.Warn("Slow query detected")
-		
+
 		authLogger.Info("User authentication successful")
 		authLogger.Error("Failed login attempt detected")
-		
+
 		logger.Trace("This is a trace log in default namespace!")
 		logger.Warn("This is a warning in default namespace!")
-		
+
 		time.Sleep(2 * time.Second)
 	}
 }

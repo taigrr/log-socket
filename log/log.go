@@ -99,7 +99,7 @@ func createLog(e Entry) {
 	namespacesMux.Lock()
 	namespaces[e.Namespace] = true
 	namespacesMux.Unlock()
-	
+
 	sliceTex.Lock()
 	for _, c := range clients {
 		func(c *Client, e Entry) {
@@ -126,7 +126,7 @@ func createLog(e Entry) {
 func GetNamespaces() []string {
 	namespacesMux.RLock()
 	defer namespacesMux.RUnlock()
-	
+
 	result := make([]string, 0, len(namespaces))
 	for ns := range namespaces {
 		result = append(result, ns)
