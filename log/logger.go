@@ -28,7 +28,7 @@ func (l Logger) Trace(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "TRACE",
 		level:     LTrace,
 		Namespace: l.Namespace,
@@ -42,7 +42,7 @@ func (l Logger) Tracef(format string, args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "TRACE",
 		level:     LTrace,
 		Namespace: l.Namespace,
@@ -56,7 +56,7 @@ func (l Logger) Traceln(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "TRACE",
 		level:     LTrace,
 		Namespace: l.Namespace,
@@ -70,7 +70,7 @@ func (l Logger) Debug(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "DEBUG",
 		level:     LDebug,
 		Namespace: l.Namespace,
@@ -84,7 +84,7 @@ func (l Logger) Debugf(format string, args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "DEBUG",
 		level:     LDebug,
 		Namespace: l.Namespace,
@@ -98,7 +98,7 @@ func (l Logger) Info(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "INFO",
 		level:     LInfo,
 		Namespace: l.Namespace,
@@ -112,7 +112,7 @@ func (l Logger) Infof(format string, args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "INFO",
 		level:     LInfo,
 		Namespace: l.Namespace,
@@ -126,7 +126,7 @@ func (l Logger) Infoln(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "INFO",
 		level:     LInfo,
 		Namespace: l.Namespace,
@@ -140,7 +140,7 @@ func (l Logger) Notice(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "NOTICE",
 		level:     LNotice,
 		Namespace: l.Namespace,
@@ -154,7 +154,7 @@ func (l Logger) Noticef(format string, args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "NOTICE",
 		level:     LNotice,
 		Namespace: l.Namespace,
@@ -168,7 +168,7 @@ func (l Logger) Noticeln(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "NOTICE",
 		level:     LNotice,
 		Namespace: l.Namespace,
@@ -182,7 +182,7 @@ func (l Logger) Warn(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "WARN",
 		level:     LWarn,
 		Namespace: l.Namespace,
@@ -196,7 +196,7 @@ func (l Logger) Warnf(format string, args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "WARN",
 		level:     LWarn,
 		Namespace: l.Namespace,
@@ -210,7 +210,7 @@ func (l Logger) Warnln(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "WARN",
 		level:     LWarn,
 		Namespace: l.Namespace,
@@ -224,7 +224,7 @@ func (l Logger) Error(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "ERROR",
 		level:     LError,
 		Namespace: l.Namespace,
@@ -238,7 +238,7 @@ func (l Logger) Errorf(format string, args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "ERROR",
 		level:     LError,
 		Namespace: l.Namespace,
@@ -252,7 +252,7 @@ func (l Logger) Errorln(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "ERROR",
 		level:     LError,
 		Namespace: l.Namespace,
@@ -266,13 +266,13 @@ func (l Logger) Panic(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "PANIC",
 		level:     LPanic,
 		Namespace: l.Namespace,
 	}
 	createLog(e)
-	if len(args) >= 0 {
+	if len(args) > 0 {
 		switch args[0].(type) {
 		case error:
 			panic(args[0])
@@ -290,13 +290,13 @@ func (l Logger) Panicf(format string, args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "PANIC",
 		level:     LPanic,
 		Namespace: l.Namespace,
 	}
 	createLog(e)
-	if len(args) >= 0 {
+	if len(args) > 0 {
 		switch args[0].(type) {
 		case error:
 			panic(args[0])
@@ -314,13 +314,13 @@ func (l Logger) Panicln(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "PANIC",
 		level:     LPanic,
 		Namespace: l.Namespace,
 	}
 	createLog(e)
-	if len(args) >= 0 {
+	if len(args) > 0 {
 		switch args[0].(type) {
 		case error:
 			panic(args[0])
@@ -338,7 +338,7 @@ func (l Logger) Fatal(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "FATAL",
 		level:     LFatal,
 		Namespace: l.Namespace,
@@ -354,7 +354,7 @@ func (l Logger) Fatalf(format string, args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "FATAL",
 		level:     LFatal,
 		Namespace: l.Namespace,
@@ -370,7 +370,7 @@ func (l Logger) Fatalln(args ...any) {
 	e := Entry{
 		Timestamp: time.Now(),
 		Output:    output,
-		File:      fileInfo(l.FileInfoDepth),
+		File:      fileInfo(2 + l.FileInfoDepth),
 		Level:     "FATAL",
 		level:     LFatal,
 		Namespace: l.Namespace,

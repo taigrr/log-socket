@@ -23,7 +23,7 @@ var (
 func init() {
 	namespaces = make(map[string]bool)
 	initColorEnabled()
-	stderrClient = CreateClient(DefaultNamespace)
+	stderrClient = CreateClient()
 	stderrClient.SetLogLevel(LTrace)
 	stderrFinished = make(chan bool, 1)
 	go stderrClient.logStdErr()
@@ -74,19 +74,19 @@ func Flush() {
 }
 
 func (c *Client) Destroy() error {
-	var otherClients []*Client
 	if !c.initialized {
 		panic(errors.New("cannot delete uninitialized client, did you use CreateClient?"))
 	}
 	sliceTex.Lock()
-	c.writer = nil
 	c.initialized = false
+	var otherClients []*Client
 	for _, x := range clients {
-		if x.initialized {
+		if x != c && x.initialized {
 			otherClients = append(otherClients, x)
 		}
 	}
 	clients = otherClients
+	c.writer = nil
 	sliceTex.Unlock()
 	return nil
 }
@@ -107,6 +107,9 @@ func createLog(e Entry) {
 	sliceTex.Lock()
 	for _, c := range clients {
 		func(c *Client, e Entry) {
+			if c.writer == nil || !c.initialized {
+				return
+			}
 			// Filter by namespace if client has filters specified
 			if !c.matchesNamespace(e.Namespace) {
 				return
@@ -421,7 +424,7 @@ func Panic(args ...any) {
 		Namespace: DefaultNamespace,
 	}
 	createLog(e)
-	if len(args) >= 0 {
+	if len(args) > 0 {
 		switch args[0].(type) {
 		case error:
 			panic(args[0])
@@ -445,7 +448,7 @@ func Panicf(format string, args ...any) {
 		Namespace: DefaultNamespace,
 	}
 	createLog(e)
-	if len(args) >= 0 {
+	if len(args) > 0 {
 		switch args[0].(type) {
 		case error:
 			panic(args[0])
@@ -468,7 +471,7 @@ func Panicln(args ...any) {
 		Namespace: DefaultNamespace,
 	}
 	createLog(e)
-	if len(args) >= 0 {
+	if len(args) > 0 {
 		switch args[0].(type) {
 		case error:
 			panic(args[0])
