@@ -22,6 +22,7 @@ var (
 
 func init() {
 	namespaces = make(map[string]bool)
+	initColorEnabled()
 	stderrClient = CreateClient(DefaultNamespace)
 	stderrClient.SetLogLevel(LTrace)
 	stderrFinished = make(chan bool, 1)
@@ -31,7 +32,10 @@ func init() {
 func (c *Client) logStdErr() {
 	for e := range c.writer {
 		if e.level >= c.LogLevel && c.matchesNamespace(e.Namespace) {
-			fmt.Fprintf(os.Stderr, "%s\t%s\t[%s]\t%s\t%s\n", e.Timestamp.String(), e.Level, e.Namespace, e.Output, e.File)
+			levelStr := colorizeLevelText(e.Level, e.level)
+			nsStr := colorize("["+e.Namespace+"]", colorPurple)
+			fileStr := colorize(e.File, colorGray)
+			fmt.Fprintf(os.Stderr, "%s\t%s\t%s\t%s\t%s\n", e.Timestamp.String(), levelStr, nsStr, e.Output, fileStr)
 		}
 	}
 	stderrFinished <- true

@@ -15,6 +15,7 @@ A real-time log viewer with WebSocket support and namespace filtering, written i
 - **Namespace filtering**: Subscribe to specific namespaces via WebSocket
 - **Frontend namespace selector**: Filter logs by namespace in the web UI
 - **Namespace API**: GET `/api/namespaces` to list all active namespaces
+- **Colored terminal output**: Log levels are color-coded in terminal (no external packages)
 
 ## Features
 
@@ -187,6 +188,40 @@ ws://localhost:8080/ws?namespaces=api,database  # Multiple namespaces
 - **Clear**: Remove all logs from the viewer
 - **Color Coding**: Different log levels are color-coded
 - **Reconnect**: Reconnect WebSocket with new namespace filter
+
+## Terminal Colors
+
+Log output to stderr is automatically colorized when writing to a terminal. Colors are disabled when output is piped or redirected to a file.
+
+### Color Scheme
+
+| Level  | Color        |
+|--------|--------------|
+| TRACE  | Gray         |
+| DEBUG  | Cyan         |
+| INFO   | Green        |
+| NOTICE | Blue         |
+| WARN   | Yellow       |
+| ERROR  | Red          |
+| PANIC  | Bold Red     |
+| FATAL  | Bold Red     |
+
+### Controlling Colors
+
+```go
+// Disable colors (e.g., for CI/CD or file output)
+logger.SetColorEnabled(false)
+
+// Enable colors explicitly
+logger.SetColorEnabled(true)
+
+// Check current state
+if logger.ColorEnabled() {
+    // colors are on
+}
+```
+
+Colors are implemented using standard ANSI escape codes with no external dependencies.
 
 ## Migration from v1
 
