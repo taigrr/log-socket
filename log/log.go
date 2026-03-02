@@ -103,7 +103,7 @@ func createLog(e Entry) {
 	namespacesMux.Lock()
 	namespaces[e.Namespace] = true
 	namespacesMux.Unlock()
-	
+
 	sliceTex.Lock()
 	for _, c := range clients {
 		func(c *Client, e Entry) {
@@ -133,7 +133,7 @@ func createLog(e Entry) {
 func GetNamespaces() []string {
 	namespacesMux.RLock()
 	defer namespacesMux.RUnlock()
-	
+
 	result := make([]string, 0, len(namespaces))
 	for ns := range namespaces {
 		result = append(result, ns)
@@ -555,4 +555,38 @@ func fileInfo(skip int) string {
 		}
 	}
 	return fmt.Sprintf("%s:%d", file, line)
+}
+
+// Broadcast sends an [Entry] to all registered clients. This is the public
+// entry point used by adapter packages (such as the slog handler) that
+// construct entries themselves. The unexported level field is inferred from
+// [Entry.Level] when not already set.
+func Broadcast(e Entry) {
+	if e.level == 0 && e.Level != "" && e.Level != "TRACE" {
+		e.level = parseLevelString(e.Level)
+	}
+	createLog(e)
+}
+
+func parseLevelString(s string) Level {
+	switch s {
+	case "TRACE":
+		return LTrace
+	case "DEBUG":
+		return LDebug
+	case "INFO":
+		return LInfo
+	case "NOTICE":
+		return LNotice
+	case "WARN":
+		return LWarn
+	case "ERROR":
+		return LError
+	case "PANIC":
+		return LPanic
+	case "FATAL":
+		return LFatal
+	default:
+		return LInfo
+	}
 }
