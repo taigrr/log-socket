@@ -137,6 +137,7 @@ func (h *Handler) clone() *Handler {
 }
 
 func writeAttr(b *strings.Builder, groups []string, a slog.Attr) {
+	a.Value = a.Value.Resolve()
 	if a.Equal(slog.Attr{}) {
 		return
 	}
