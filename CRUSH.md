@@ -239,7 +239,7 @@ Still embeds viewer.html, but HTML now includes:
 
 ## Go Version & Dependencies
 
-- **Go version**: 1.24.4 (specified in go.mod)
+- **Go version**: 1.26.1 (specified in go.mod)
 - **Only external dependency**: `github.com/gorilla/websocket v1.5.3`
 
 ## Naming Conventions & Style
@@ -314,27 +314,17 @@ UI provides "Reconnect" button for this purpose.
 ### 6. Stderr Client Uses All Namespaces
 The built-in stderr client (created in `init()`) listens to all namespaces:
 ```go
-stderrClient = CreateClient(DefaultNamespace)
+stderrClient = CreateClient() // No args = all namespaces
 ```
 
-But only prints logs matching its own namespace in `logStdErr()`:
+It prints logs matching its level and namespace filter in `logStdErr()`:
 ```go
 if e.level >= c.LogLevel && c.matchesNamespace(e.Namespace) {
     fmt.Fprintf(os.Stderr, "%s\t%s\t[%s]\t%s\t%s\n", ...)
 }
 ```
 
-**Wait, that's a bug!** The stderr client is created with `DefaultNamespace` but should be created with no namespaces to see all logs. Let me check this.
-
-Actually looking at the code:
-```go
-stderrClient = CreateClient(DefaultNamespace)
-```
-
-This means stderr client only sees "default" namespace logs. This might be intentional, but seems like a bug. Should probably be:
-```go
-stderrClient = CreateClient() // No args = all namespaces
-```
+Since `CreateClient()` is called with no arguments, the Namespaces slice is empty, which means it matches all namespaces.
 
 ### 7. Grid Layout Updated
 The log viewer grid changed from 4 to 5 columns:
@@ -374,8 +364,9 @@ All existing tests pass with namespace support added.
 ## CI/CD
 
 GitHub Actions workflow (`.github/workflows/ci.yaml`):
-- Still uses Go 1.21 (should update to 1.24.4 to match go.mod)
-- No changes needed for v2 functionality
+- Uses Go 1.26, actions/checkout@v4, actions/setup-go@v5
+- Runs tests with `-race` flag
+- Triggers on push and pull_request
 
 ## Common Tasks
 

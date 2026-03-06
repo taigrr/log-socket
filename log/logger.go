@@ -92,6 +92,20 @@ func (l Logger) Debugf(format string, args ...any) {
 	createLog(e)
 }
 
+// Debugln prints out logs on debug level with a newline
+func (l Logger) Debugln(args ...any) {
+	output := fmt.Sprintln(args...)
+	e := Entry{
+		Timestamp: time.Now(),
+		Output:    output,
+		File:      fileInfo(2 + l.FileInfoDepth),
+		Level:     "DEBUG",
+		level:     LDebug,
+		Namespace: l.Namespace,
+	}
+	createLog(e)
+}
+
 // Info prints out logs on info level
 func (l Logger) Info(args ...any) {
 	output := fmt.Sprint(args...)
