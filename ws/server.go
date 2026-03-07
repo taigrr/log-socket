@@ -23,7 +23,7 @@ func LogSocketHandler(w http.ResponseWriter, r *http.Request) {
 	if namespacesParam != "" {
 		namespaces = strings.Split(namespacesParam, ",")
 	}
-	
+
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		logger.Error("upgrade:", err)
