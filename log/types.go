@@ -15,6 +15,31 @@ const (
 
 const DefaultNamespace = "default"
 
+// String returns the human-readable name of the log level (e.g. "INFO").
+// It implements [fmt.Stringer].
+func (l Level) String() string {
+	switch l {
+	case LTrace:
+		return "TRACE"
+	case LDebug:
+		return "DEBUG"
+	case LInfo:
+		return "INFO"
+	case LNotice:
+		return "NOTICE"
+	case LWarn:
+		return "WARN"
+	case LError:
+		return "ERROR"
+	case LPanic:
+		return "PANIC"
+	case LFatal:
+		return "FATAL"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type (
 	LogWriter chan Entry
 	Level     int

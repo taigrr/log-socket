@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -153,11 +154,27 @@ func (c *Client) SetLogLevel(level Level) {
 	c.LogLevel = level
 }
 
+// Get blocks until a log entry is available and returns it.
 func (c *Client) Get() Entry {
 	if !c.initialized {
 		panic(errors.New("cannot get logs for uninitialized client, did you use CreateClient?"))
 	}
 	return <-c.writer
+}
+
+// GetContext blocks until a log entry is available or ctx is cancelled.
+// The second return value is false when the context was cancelled before
+// an entry arrived.
+func (c *Client) GetContext(ctx context.Context) (Entry, bool) {
+	if !c.initialized {
+		panic(errors.New("cannot get logs for uninitialized client, did you use CreateClient?"))
+	}
+	select {
+	case e := <-c.writer:
+		return e, true
+	case <-ctx.Done():
+		return Entry{}, false
+	}
 }
 
 // Trace prints out logs on trace level
