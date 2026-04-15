@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"strconv"
 	"sync"
 	"testing"
@@ -378,8 +379,8 @@ func TestMultiNamespaceClient(t *testing.T) {
 	authLogger := NewLogger("auth")
 	dbLogger := NewLogger("database")
 
-	dbLogger.Info("db message")   // filtered out
-	apiLogger.Info("api message") // should arrive
+	dbLogger.Info("db message")     // filtered out
+	apiLogger.Info("api message")   // should arrive
 	authLogger.Info("auth message") // should arrive
 
 	e1, ok := getEntry(c, time.Second)
@@ -548,6 +549,68 @@ func TestMatchesNamespace(t *testing.T) {
 		t.Error("should not match 'database'")
 	}
 	c2.Destroy()
+}
+
+// TestGetContext verifies context cancellation stops blocking Get.
+func TestGetContext(t *testing.T) {
+	c := CreateClient(DefaultNamespace)
+	c.SetLogLevel(LTrace)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // cancel immediately
+
+	_, ok := c.GetContext(ctx)
+	if ok {
+		t.Error("expected GetContext to return false on cancelled context")
+	}
+	c.Destroy()
+}
+
+// TestGetContextReceivesEntry verifies GetContext delivers entries normally.
+func TestGetContextReceivesEntry(t *testing.T) {
+	c := CreateClient(DefaultNamespace)
+	c.SetLogLevel(LTrace)
+
+	go func() {
+		time.Sleep(10 * time.Millisecond)
+		Info("context entry")
+	}()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	e, ok := c.GetContext(ctx)
+	if !ok {
+		t.Fatal("expected GetContext to return entry")
+	}
+	if e.Output != "context entry" {
+		t.Errorf("output = %q, want %q", e.Output, "context entry")
+	}
+	c.Destroy()
+}
+
+// TestLevelString verifies the Level.String() method.
+func TestLevelString(t *testing.T) {
+	tests := []struct {
+		level Level
+		want  string
+	}{
+		{LTrace, "TRACE"},
+		{LDebug, "DEBUG"},
+		{LInfo, "INFO"},
+		{LNotice, "NOTICE"},
+		{LWarn, "WARN"},
+		{LError, "ERROR"},
+		{LPanic, "PANIC"},
+		{LFatal, "FATAL"},
+		{Level(99), "UNKNOWN"},
+	}
+	for _, tt := range tests {
+		got := tt.level.String()
+		if got != tt.want {
+			t.Errorf("Level(%d).String() = %q, want %q", tt.level, got, tt.want)
+		}
+	}
 }
 
 func TestFlush(t *testing.T) {
