@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -139,6 +140,7 @@ func GetNamespaces() []string {
 	for ns := range namespaces {
 		result = append(result, ns)
 	}
+	sort.Strings(result)
 	return result
 }
 

@@ -419,6 +419,35 @@ func TestGetNamespaces(t *testing.T) {
 	}
 }
 
+func TestGetNamespacesSorted(t *testing.T) {
+	NewLogger("sort-ns-charlie").Info("register charlie")
+	NewLogger("sort-ns-alpha").Info("register alpha")
+	NewLogger("sort-ns-bravo").Info("register bravo")
+
+	nss := GetNamespaces()
+	indexes := make(map[string]int, len(nss))
+	for index, ns := range nss {
+		indexes[ns] = index
+	}
+
+	alphaIndex, ok := indexes["sort-ns-alpha"]
+	if !ok {
+		t.Fatalf("missing namespace %q in %v", "sort-ns-alpha", nss)
+	}
+	bravoIndex, ok := indexes["sort-ns-bravo"]
+	if !ok {
+		t.Fatalf("missing namespace %q in %v", "sort-ns-bravo", nss)
+	}
+	charlieIndex, ok := indexes["sort-ns-charlie"]
+	if !ok {
+		t.Fatalf("missing namespace %q in %v", "sort-ns-charlie", nss)
+	}
+
+	if !(alphaIndex < bravoIndex && bravoIndex < charlieIndex) {
+		t.Fatalf("expected sorted namespace order, got %v", nss)
+	}
+}
+
 // TestLoggerDebugln verifies the Debugln method on Logger.
 func TestLoggerDebugln(t *testing.T) {
 	c := CreateClient("debugln-test")
