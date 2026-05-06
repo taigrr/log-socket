@@ -5,17 +5,29 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/gorilla/websocket"
 	logger "github.com/taigrr/log-socket/v2/log"
 )
 
-var upgrader = websocket.Upgrader{} // use default options
+var (
+	upgrader    = websocket.Upgrader{} // use default options
+	upgraderMux sync.RWMutex
+)
 
 // SetUpgrader replaces the default [websocket.Upgrader] used by
 // [LogSocketHandler].
 func SetUpgrader(u websocket.Upgrader) {
+	upgraderMux.Lock()
+	defer upgraderMux.Unlock()
 	upgrader = u
+}
+
+func getUpgrader() websocket.Upgrader {
+	upgraderMux.RLock()
+	defer upgraderMux.RUnlock()
+	return upgrader
 }
 
 // LogSocketHandler upgrades the HTTP connection to a WebSocket and streams
@@ -30,7 +42,8 @@ func LogSocketHandler(w http.ResponseWriter, r *http.Request) {
 		namespaces = strings.Split(namespacesParam, ",")
 	}
 
-	conn, err := upgrader.Upgrade(w, r, nil)
+	currentUpgrader := getUpgrader()
+	conn, err := currentUpgrader.Upgrade(w, r, nil)
 	if err != nil {
 		logger.Error("upgrade:", err)
 		return
