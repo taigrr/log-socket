@@ -18,17 +18,33 @@ func SetUpgrader(u websocket.Upgrader) {
 	upgrader = u
 }
 
+func parseNamespaces(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+
+	parts := strings.Split(raw, ",")
+	namespaces := make([]string, 0, len(parts))
+	for _, part := range parts {
+		namespace := strings.TrimSpace(part)
+		if namespace == "" {
+			continue
+		}
+		namespaces = append(namespaces, namespace)
+	}
+	if len(namespaces) == 0 {
+		return nil
+	}
+	return namespaces
+}
+
 // LogSocketHandler upgrades the HTTP connection to a WebSocket and streams
 // log entries to the client. An optional "namespaces" query parameter
 // (comma-separated) filters which namespaces the client receives.
 func LogSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// Get namespaces from query parameter, comma-separated.
 	// Empty or missing means all namespaces.
-	namespacesParam := r.URL.Query().Get("namespaces")
-	var namespaces []string
-	if namespacesParam != "" {
-		namespaces = strings.Split(namespacesParam, ",")
-	}
+	namespaces := parseNamespaces(r.URL.Query().Get("namespaces"))
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
