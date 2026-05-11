@@ -10,6 +10,8 @@ import (
 	"github.com/taigrr/log-socket/v2/ws"
 )
 
+const readHeaderTimeout = 5 * time.Second
+
 var addr = flag.String("addr", "0.0.0.0:8080", "http service address")
 
 func generateLogs() {
@@ -36,12 +38,25 @@ func generateLogs() {
 	}
 }
 
+func newMux() *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ws", ws.LogSocketHandler)
+	mux.HandleFunc("/api/namespaces", ws.NamespacesHandler)
+	mux.HandleFunc("/", browser.LogSocketViewHandler)
+	return mux
+}
+
+func newServer(address string) *http.Server {
+	return &http.Server{
+		Addr:              address,
+		Handler:           newMux(),
+		ReadHeaderTimeout: readHeaderTimeout,
+	}
+}
+
 func main() {
 	defer logger.Flush()
 	flag.Parse()
-	http.HandleFunc("/ws", ws.LogSocketHandler)
-	http.HandleFunc("/api/namespaces", ws.NamespacesHandler)
-	http.HandleFunc("/", browser.LogSocketViewHandler)
 	go generateLogs()
-	logger.Fatal(http.ListenAndServe(*addr, nil))
+	logger.Fatal(newServer(*addr).ListenAndServe())
 }
