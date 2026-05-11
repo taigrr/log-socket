@@ -77,3 +77,33 @@ func TestLogSocketViewHandler_ForwardedHTTPOverridesTLS(t *testing.T) {
 		t.Error("expected escaped ws://example.com/logs/ws in body")
 	}
 }
+
+func TestLogSocketViewHandler_ForwardedHostUsedForWebsocketURL(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "https://internal:8080/logs/", nil)
+	req.TLS = &tls.ConnectionState{}
+	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("X-Forwarded-Host", "logs.example.com")
+	w := httptest.NewRecorder()
+	LogSocketViewHandler(w, req)
+
+	body := w.Body.String()
+	if !strings.Contains(body, `wss:\/\/logs.example.com\/logs\/ws`) {
+		t.Error("expected escaped wss://logs.example.com/logs/ws in body")
+	}
+	if strings.Contains(body, `internal:8080`) {
+		t.Error("response should not leak the internal host when X-Forwarded-Host is set")
+	}
+}
+
+func TestLogSocketViewHandler_ForwardedHeadersUseFirstValue(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "http://internal:8080/logs/", nil)
+	req.Header.Set("X-Forwarded-Proto", "HTTPS, http")
+	req.Header.Set("X-Forwarded-Host", "logs.example.com, internal:8080")
+	w := httptest.NewRecorder()
+	LogSocketViewHandler(w, req)
+
+	body := w.Body.String()
+	if !strings.Contains(body, `wss:\/\/logs.example.com\/logs\/ws`) {
+		t.Error("expected escaped wss://logs.example.com/logs/ws in body")
+	}
+}
