@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -49,5 +50,30 @@ func TestLogSocketViewHandler_TrailingSlashTrimmed(t *testing.T) {
 	}
 	if !strings.Contains(body, `ws:\/\/example.com\/ws`) {
 		t.Error("expected escaped ws://example.com/ws in body")
+	}
+}
+
+func TestLogSocketViewHandler_ForwardedHTTPSUsesWSS(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "http://example.com/logs/", nil)
+	req.Header.Set("X-Forwarded-Proto", "https")
+	w := httptest.NewRecorder()
+	LogSocketViewHandler(w, req)
+
+	body := w.Body.String()
+	if !strings.Contains(body, `wss:\/\/example.com\/logs\/ws`) {
+		t.Error("expected escaped wss://example.com/logs/ws in body")
+	}
+}
+
+func TestLogSocketViewHandler_ForwardedHTTPOverridesTLS(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/logs/", nil)
+	req.TLS = &tls.ConnectionState{}
+	req.Header.Set("X-Forwarded-Proto", "http")
+	w := httptest.NewRecorder()
+	LogSocketViewHandler(w, req)
+
+	body := w.Body.String()
+	if !strings.Contains(body, `ws:\/\/example.com\/logs\/ws`) {
+		t.Error("expected escaped ws://example.com/logs/ws in body")
 	}
 }
