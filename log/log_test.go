@@ -580,6 +580,47 @@ func TestMatchesNamespace(t *testing.T) {
 	c2.Destroy()
 }
 
+func TestCreateClientNormalizesNamespaces(t *testing.T) {
+	c := CreateClient(" api ", "", "auth", "api", "\t")
+	defer c.Destroy()
+
+	want := []string{"api", "auth"}
+	if len(c.Namespaces) != len(want) {
+		t.Fatalf("namespaces length = %d, want %d: %#v", len(c.Namespaces), len(want), c.Namespaces)
+	}
+	for i := range want {
+		if c.Namespaces[i] != want[i] {
+			t.Fatalf("namespaces[%d] = %q, want %q", i, c.Namespaces[i], want[i])
+		}
+	}
+}
+
+func TestCreateClientBlankNamespacesMatchAll(t *testing.T) {
+	c := CreateClient("", " ")
+	defer c.Destroy()
+
+	if len(c.Namespaces) != 0 {
+		t.Fatalf("blank namespaces should normalize to all namespaces, got %#v", c.Namespaces)
+	}
+	if !c.matchesNamespace("api") {
+		t.Error("blank-only namespace filters should match all namespaces")
+	}
+}
+
+func TestCreateClientCopiesNamespaceFilters(t *testing.T) {
+	namespaces := []string{"api"}
+	c := CreateClient(namespaces...)
+	defer c.Destroy()
+
+	namespaces[0] = "auth"
+	if !c.matchesNamespace("api") {
+		t.Error("client namespace filters should not change when caller mutates input slice")
+	}
+	if c.matchesNamespace("auth") {
+		t.Error("client should not match mutated caller namespace")
+	}
+}
+
 // TestGetContext verifies context cancellation stops blocking Get.
 func TestGetContext(t *testing.T) {
 	c := CreateClient(DefaultNamespace)

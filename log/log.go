@@ -56,10 +56,34 @@ func (c *Client) matchesNamespace(namespace string) bool {
 	return false
 }
 
+func normalizeClientNamespaces(namespaces []string) []string {
+	if len(namespaces) == 0 {
+		return nil
+	}
+
+	normalized := make([]string, 0, len(namespaces))
+	seen := make(map[string]struct{}, len(namespaces))
+	for _, namespace := range namespaces {
+		namespace = strings.TrimSpace(namespace)
+		if namespace == "" {
+			continue
+		}
+		if _, ok := seen[namespace]; ok {
+			continue
+		}
+		seen[namespace] = struct{}{}
+		normalized = append(normalized, namespace)
+	}
+	if len(normalized) == 0 {
+		return nil
+	}
+	return normalized
+}
+
 func CreateClient(namespaces ...string) *Client {
 	var client Client
 	client.initialized = true
-	client.Namespaces = namespaces
+	client.Namespaces = normalizeClientNamespaces(namespaces)
 	client.writer = make(LogWriter, 1000)
 	sliceTex.Lock()
 	clients = append(clients, &client)

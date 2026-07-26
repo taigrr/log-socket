@@ -183,22 +183,46 @@ func TestLogSocketHandler_NamespaceFilter_TrimsWhitespace(t *testing.T) {
 	defer conn.Close()
 
 	filteredLogger := logger.NewLogger("filtered-ns")
-	filteredLogger.Info("trimmed namespace should arrive")
+	done := make(chan struct{})
+	defer close(done)
+	go func() {
+		ticker := time.NewTicker(10 * time.Millisecond)
+		defer ticker.Stop()
+		for i := 0; ; i++ {
+			select {
+			case <-done:
+				return
+			case <-ticker.C:
+				filteredLogger.Infof("trimmed namespace should arrive %d", i)
+			}
+		}
+	}()
 
-	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
-	_, message, err := conn.ReadMessage()
-	if err != nil {
-		t.Fatalf("failed to read message: %v", err)
-	}
-
-	var entry logger.Entry
-	if err := json.Unmarshal(message, &entry); err != nil {
-		t.Fatalf("failed to unmarshal entry: %v", err)
-	}
+	entry := waitForWebSocketEntryWithDeadline(t, conn, 2*time.Second, func(entry logger.Entry) bool {
+		return entry.Namespace == "filtered-ns"
+	})
 	if entry.Namespace != "filtered-ns" {
 		t.Fatalf("namespace = %q, want filtered-ns", entry.Namespace)
 	}
 	if !strings.Contains(entry.Output, "trimmed namespace should arrive") {
 		t.Fatalf("output = %q, want trimmed namespace message", entry.Output)
+	}
+}
+
+func waitForWebSocketEntryWithDeadline(t *testing.T, conn *websocket.Conn, timeout time.Duration, match func(logger.Entry) bool) logger.Entry {
+	t.Helper()
+	conn.SetReadDeadline(time.Now().Add(timeout))
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			t.Fatalf("failed to read message: %v", err)
+		}
+		var entry logger.Entry
+		if err := json.Unmarshal(message, &entry); err != nil {
+			t.Fatalf("failed to unmarshal entry: %v", err)
+		}
+		if match(entry) {
+			return entry
+		}
 	}
 }
