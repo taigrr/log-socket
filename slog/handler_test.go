@@ -99,6 +99,47 @@ func TestHandler_WithGroup(t *testing.T) {
 	}
 }
 
+func TestHandler_WithAttrsBeforeWithGroup(t *testing.T) {
+	c := log.CreateClient()
+	defer c.Destroy()
+	c.SetLogLevel(log.LTrace)
+
+	h := NewHandler()
+	h2 := h.WithAttrs([]slog.Attr{slog.String("service", "api")}).
+		WithGroup("http").
+		WithAttrs([]slog.Attr{slog.Int("status", 200)})
+	logger := slog.New(h2)
+
+	logger.Info("done", "method", "GET")
+
+	e, ok := getWithTimeout(c, time.Second)
+	if !ok {
+		t.Fatal("timed out")
+	}
+	if e.Output != "done service=api http.status=200 http.method=GET" {
+		t.Errorf("output = %q, want %q", e.Output, "done service=api http.status=200 http.method=GET")
+	}
+}
+
+func TestHandler_WithNamespaceEmptyUsesDefault(t *testing.T) {
+	c := log.CreateClient(log.DefaultNamespace)
+	defer c.Destroy()
+	c.SetLogLevel(log.LTrace)
+
+	h := NewHandler(WithNamespace(""))
+	logger := slog.New(h)
+
+	logger.Info("default namespace")
+
+	e, ok := getWithTimeout(c, time.Second)
+	if !ok {
+		t.Fatal("timed out")
+	}
+	if e.Namespace != log.DefaultNamespace {
+		t.Errorf("namespace = %q, want %q", e.Namespace, log.DefaultNamespace)
+	}
+}
+
 func TestSlogLevelMapping(t *testing.T) {
 	tests := []struct {
 		level slog.Level

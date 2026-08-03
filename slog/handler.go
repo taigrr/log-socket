@@ -22,7 +22,7 @@ import (
 type Handler struct {
 	namespace string
 	level     slog.Level
-	attrs     []slog.Attr
+	attrs     []handlerAttr
 	groups    []string
 }
 
@@ -32,10 +32,18 @@ var _ slog.Handler = (*Handler)(nil)
 // Option configures a [Handler].
 type Option func(*Handler)
 
+type handlerAttr struct {
+	groups []string
+	attr   slog.Attr
+}
+
 // WithNamespace sets the log-socket namespace for entries produced by this
 // handler.  If empty, [log.DefaultNamespace] is used.
 func WithNamespace(ns string) Option {
 	return func(h *Handler) {
+		if ns == "" {
+			ns = log.DefaultNamespace
+		}
 		h.namespace = ns
 	}
 }
@@ -73,7 +81,7 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 
 	// Append pre-collected attrs.
 	for _, a := range h.attrs {
-		writeAttr(&b, h.groups, a)
+		writeAttr(&b, a.groups, a.attr)
 	}
 
 	// Append record-level attrs.
@@ -109,7 +117,12 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 // WithAttrs returns a new Handler with the given attributes appended.
 func (h *Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	h2 := h.clone()
-	h2.attrs = append(h2.attrs, attrs...)
+	for _, attr := range attrs {
+		h2.attrs = append(h2.attrs, handlerAttr{
+			groups: append([]string(nil), h.groups...),
+			attr:   attr,
+		})
+	}
 	return h2
 }
 
@@ -128,10 +141,13 @@ func (h *Handler) clone() *Handler {
 	h2 := &Handler{
 		namespace: h.namespace,
 		level:     h.level,
-		attrs:     make([]slog.Attr, len(h.attrs)),
+		attrs:     make([]handlerAttr, len(h.attrs)),
 		groups:    make([]string, len(h.groups)),
 	}
 	copy(h2.attrs, h.attrs)
+	for i := range h2.attrs {
+		h2.attrs[i].groups = append([]string(nil), h.attrs[i].groups...)
+	}
 	copy(h2.groups, h.groups)
 	return h2
 }
