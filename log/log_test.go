@@ -519,6 +519,8 @@ func TestParseLevelString(t *testing.T) {
 		{"ERROR", LError},
 		{"PANIC", LPanic},
 		{"FATAL", LFatal},
+		{"warn", LWarn},
+		{" error ", LError},
 		{"UNKNOWN", LInfo}, // default
 		{"", LInfo},        // default
 	}

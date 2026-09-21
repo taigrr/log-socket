@@ -612,7 +612,7 @@ func Broadcast(e Entry) {
 }
 
 func parseLevelString(s string) Level {
-	switch s {
+	switch strings.ToUpper(strings.TrimSpace(s)) {
 	case "TRACE":
 		return LTrace
 	case "DEBUG":
