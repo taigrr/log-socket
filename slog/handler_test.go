@@ -2,6 +2,7 @@ package slog
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"testing"
 	"time"
@@ -154,6 +155,46 @@ func TestSlogLevelMapping(t *testing.T) {
 		got := slogLevelToString(tt.level)
 		if got != tt.want {
 			t.Errorf("slogLevelToString(%v) = %q, want %q", tt.level, got, tt.want)
+		}
+	}
+}
+
+func TestHandler_GroupAttrs(t *testing.T) {
+	tests := []struct {
+		name string
+		attr slog.Attr
+		want string
+	}{
+		{"nested", slog.Group("request", slog.Int("status", 200), slog.Group("peer", slog.String("host", "localhost"))), "message outer.request.status=200 outer.request.peer.host=localhost"},
+		{"inline", slog.Group("", slog.Int("status", 200)), "message outer.status=200"},
+		{"empty", slog.Group("request"), "message"},
+		{"empty children", slog.Group("request", slog.Attr{}, slog.Group("peer")), "message"},
+	}
+	for _, tt := range tests {
+		for _, bound := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/bound=%t", tt.name, bound), func(t *testing.T) {
+				client := log.CreateClient(t.Name())
+				defer client.Destroy()
+				handler := NewHandler(WithNamespace(t.Name())).WithGroup("outer")
+				record := slog.NewRecord(time.Now(), slog.LevelInfo, "message", 0)
+				if bound {
+					handler = handler.WithAttrs([]slog.Attr{tt.attr})
+				} else {
+					record.AddAttrs(tt.attr)
+				}
+				if err := handler.Handle(context.Background(), record); err != nil {
+					t.Fatal(err)
+				}
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+				defer cancel()
+				entry, ok := client.GetContext(ctx)
+				if !ok {
+					t.Fatal("no log entry received")
+				}
+				if entry.Output != tt.want {
+					t.Fatalf("output = %q, want %q", entry.Output, tt.want)
+				}
+			})
 		}
 	}
 }
