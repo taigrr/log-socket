@@ -157,6 +157,15 @@ func writeAttr(b *strings.Builder, groups []string, a slog.Attr) {
 	if a.Equal(slog.Attr{}) {
 		return
 	}
+	if a.Value.Kind() == slog.KindGroup {
+		if a.Key != "" {
+			groups = append(append([]string(nil), groups...), a.Key)
+		}
+		for _, child := range a.Value.Group() {
+			writeAttr(b, groups, child)
+		}
+		return
+	}
 	b.WriteByte(' ')
 	for _, g := range groups {
 		b.WriteString(g)
