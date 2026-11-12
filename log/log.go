@@ -95,7 +95,7 @@ func Flush() {
 	cleanup.Do(func() {
 		close(stderrClient.writer)
 		<-stderrFinished
-		stderrClient.Destroy()
+		_ = stderrClient.Destroy() // Destroy currently always returns nil.
 	})
 }
 

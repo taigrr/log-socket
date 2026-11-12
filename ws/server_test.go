@@ -56,7 +56,7 @@ func TestLogSocketHandler_WebSocket(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to connect: %v", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }() // Best-effort connection cleanup.
 
 	waitForWebSocketEntry(t, conn, func(entry logger.Entry) bool {
 		return entry.Namespace == logger.DefaultNamespace && entry.Output == "Websocket client attached."
@@ -90,7 +90,7 @@ func TestLogSocketHandler_NamespaceFilter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to connect: %v", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }() // Best-effort connection cleanup.
 
 	// Send a log to a different namespace — it should NOT be received.
 	otherLogger := logger.NewLogger("other-ns")
@@ -119,7 +119,9 @@ func TestLogSocketHandler_NamespaceFilter(t *testing.T) {
 
 func waitForWebSocketEntry(t *testing.T, conn *websocket.Conn, match func(logger.Entry) bool) logger.Entry {
 	t.Helper()
-	conn.SetReadDeadline(time.Now().Add(200 * time.Millisecond))
+	if err := conn.SetReadDeadline(time.Now().Add(200 * time.Millisecond)); err != nil {
+		t.Fatalf("set read deadline: %v", err)
+	}
 	for i := 0; i < 10; i++ {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
@@ -180,7 +182,7 @@ func TestLogSocketHandler_NamespaceFilter_TrimsWhitespace(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to connect: %v", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }() // Best-effort connection cleanup.
 
 	filteredLogger := logger.NewLogger("filtered-ns")
 	done := make(chan struct{})
@@ -211,7 +213,9 @@ func TestLogSocketHandler_NamespaceFilter_TrimsWhitespace(t *testing.T) {
 
 func waitForWebSocketEntryWithDeadline(t *testing.T, conn *websocket.Conn, timeout time.Duration, match func(logger.Entry) bool) logger.Entry {
 	t.Helper()
-	conn.SetReadDeadline(time.Now().Add(timeout))
+	if err := conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
+		t.Fatalf("set read deadline: %v", err)
+	}
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {

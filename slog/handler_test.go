@@ -37,7 +37,7 @@ func TestHandler_Enabled(t *testing.T) {
 
 func TestHandler_Handle(t *testing.T) {
 	c := log.CreateClient()
-	defer c.Destroy()
+	defer func() { _ = c.Destroy() }() // Destroy currently always returns nil.
 	c.SetLogLevel(log.LTrace)
 
 	h := NewHandler(WithNamespace("test-ns"))
@@ -62,7 +62,7 @@ func TestHandler_Handle(t *testing.T) {
 
 func TestHandler_WithAttrs(t *testing.T) {
 	c := log.CreateClient()
-	defer c.Destroy()
+	defer func() { _ = c.Destroy() }() // Destroy currently always returns nil.
 	c.SetLogLevel(log.LTrace)
 
 	h := NewHandler()
@@ -82,7 +82,7 @@ func TestHandler_WithAttrs(t *testing.T) {
 
 func TestHandler_WithGroup(t *testing.T) {
 	c := log.CreateClient()
-	defer c.Destroy()
+	defer func() { _ = c.Destroy() }() // Destroy currently always returns nil.
 	c.SetLogLevel(log.LTrace)
 
 	h := NewHandler()
@@ -102,7 +102,7 @@ func TestHandler_WithGroup(t *testing.T) {
 
 func TestHandler_WithAttrsBeforeWithGroup(t *testing.T) {
 	c := log.CreateClient()
-	defer c.Destroy()
+	defer func() { _ = c.Destroy() }() // Destroy currently always returns nil.
 	c.SetLogLevel(log.LTrace)
 
 	h := NewHandler()
@@ -124,7 +124,7 @@ func TestHandler_WithAttrsBeforeWithGroup(t *testing.T) {
 
 func TestHandler_WithNamespaceEmptyUsesDefault(t *testing.T) {
 	c := log.CreateClient(log.DefaultNamespace)
-	defer c.Destroy()
+	defer func() { _ = c.Destroy() }() // Destroy currently always returns nil.
 	c.SetLogLevel(log.LTrace)
 
 	h := NewHandler(WithNamespace(""))
@@ -174,7 +174,7 @@ func TestHandler_GroupAttrs(t *testing.T) {
 		for _, bound := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s/bound=%t", tt.name, bound), func(t *testing.T) {
 				client := log.CreateClient(t.Name())
-				defer client.Destroy()
+				defer func() { _ = client.Destroy() }() // Destroy currently always returns nil.
 				handler := NewHandler(WithNamespace(t.Name())).WithGroup("outer")
 				record := slog.NewRecord(time.Now(), slog.LevelInfo, "message", 0)
 				if bound {

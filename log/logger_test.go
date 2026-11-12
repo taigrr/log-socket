@@ -25,7 +25,7 @@ func TestLoggerTrace(t *testing.T) {
 	if e.Namespace != "logger-trace" {
 		t.Errorf("namespace = %q, want %q", e.Namespace, "logger-trace")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerTracef(t *testing.T) {
@@ -45,7 +45,7 @@ func TestLoggerTracef(t *testing.T) {
 	if e.Output != "trace msg 1" {
 		t.Errorf("output = %q, want %q", e.Output, "trace msg 1")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerTraceln(t *testing.T) {
@@ -65,7 +65,7 @@ func TestLoggerTraceln(t *testing.T) {
 	if e.Output != "trace line\n" {
 		t.Errorf("output = %q, want %q", e.Output, "trace line\n")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerDebug(t *testing.T) {
@@ -85,7 +85,7 @@ func TestLoggerDebug(t *testing.T) {
 	if e.Output != "debug message" {
 		t.Errorf("output = %q, want %q", e.Output, "debug message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerDebugf(t *testing.T) {
@@ -102,7 +102,7 @@ func TestLoggerDebugf(t *testing.T) {
 	if e.Output != "debug 42" {
 		t.Errorf("output = %q, want %q", e.Output, "debug 42")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerInfo(t *testing.T) {
@@ -122,7 +122,7 @@ func TestLoggerInfo(t *testing.T) {
 	if e.Output != "info message" {
 		t.Errorf("output = %q, want %q", e.Output, "info message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerInfof(t *testing.T) {
@@ -139,7 +139,7 @@ func TestLoggerInfof(t *testing.T) {
 	if e.Output != "count: 99" {
 		t.Errorf("output = %q, want %q", e.Output, "count: 99")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerInfoln(t *testing.T) {
@@ -156,7 +156,7 @@ func TestLoggerInfoln(t *testing.T) {
 	if e.Output != "info line\n" {
 		t.Errorf("output = %q, want %q", e.Output, "info line\n")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerNotice(t *testing.T) {
@@ -176,7 +176,7 @@ func TestLoggerNotice(t *testing.T) {
 	if e.Output != "notice message" {
 		t.Errorf("output = %q, want %q", e.Output, "notice message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerNoticef(t *testing.T) {
@@ -193,7 +193,7 @@ func TestLoggerNoticef(t *testing.T) {
 	if e.Output != "notice formatted" {
 		t.Errorf("output = %q, want %q", e.Output, "notice formatted")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerNoticeln(t *testing.T) {
@@ -210,7 +210,7 @@ func TestLoggerNoticeln(t *testing.T) {
 	if e.Output != "notice line\n" {
 		t.Errorf("output = %q, want %q", e.Output, "notice line\n")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerWarn(t *testing.T) {
@@ -230,7 +230,7 @@ func TestLoggerWarn(t *testing.T) {
 	if e.Output != "warn message" {
 		t.Errorf("output = %q, want %q", e.Output, "warn message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerWarnf(t *testing.T) {
@@ -247,7 +247,7 @@ func TestLoggerWarnf(t *testing.T) {
 	if e.Output != "warn 1" {
 		t.Errorf("output = %q, want %q", e.Output, "warn 1")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerWarnln(t *testing.T) {
@@ -264,7 +264,7 @@ func TestLoggerWarnln(t *testing.T) {
 	if e.Output != "warn line\n" {
 		t.Errorf("output = %q, want %q", e.Output, "warn line\n")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerError(t *testing.T) {
@@ -284,7 +284,7 @@ func TestLoggerError(t *testing.T) {
 	if e.Output != "error message" {
 		t.Errorf("output = %q, want %q", e.Output, "error message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerErrorf(t *testing.T) {
@@ -301,7 +301,7 @@ func TestLoggerErrorf(t *testing.T) {
 	if e.Output != "err: something broke" {
 		t.Errorf("output = %q, want %q", e.Output, "err: something broke")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerErrorln(t *testing.T) {
@@ -318,7 +318,7 @@ func TestLoggerErrorln(t *testing.T) {
 	if e.Output != "error line\n" {
 		t.Errorf("output = %q, want %q", e.Output, "error line\n")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerPanic(t *testing.T) {
@@ -343,7 +343,7 @@ func TestLoggerPanic(t *testing.T) {
 		if e.Namespace != "logger-panic" {
 			t.Errorf("namespace = %q, want %q", e.Namespace, "logger-panic")
 		}
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}()
 
 	l.Panic("panic message")
@@ -367,7 +367,7 @@ func TestLoggerPanicf(t *testing.T) {
 		if e.Output != "panic 42" {
 			t.Errorf("output = %q, want %q", e.Output, "panic 42")
 		}
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}()
 
 	l.Panicf("panic %d", 42)
@@ -391,7 +391,7 @@ func TestLoggerPanicln(t *testing.T) {
 		if e.Output != "panic line\n" {
 			t.Errorf("output = %q, want %q", e.Output, "panic line\n")
 		}
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}()
 
 	l.Panicln("panic line")
@@ -415,7 +415,7 @@ func TestLoggerPrint(t *testing.T) {
 	if e.Output != "print message" {
 		t.Errorf("output = %q, want %q", e.Output, "print message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerPrintf(t *testing.T) {
@@ -432,7 +432,7 @@ func TestLoggerPrintf(t *testing.T) {
 	if e.Output != "formatted print" {
 		t.Errorf("output = %q, want %q", e.Output, "formatted print")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerPrintln(t *testing.T) {
@@ -449,7 +449,7 @@ func TestLoggerPrintln(t *testing.T) {
 	if e.Output != "println message\n" {
 		t.Errorf("output = %q, want %q", e.Output, "println message\n")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerSetInfoDepth(t *testing.T) {
@@ -482,7 +482,7 @@ func TestDefaultLogger(t *testing.T) {
 	if e.Output != "default logger message" {
 		t.Errorf("output = %q, want %q", e.Output, "default logger message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestLoggerPanicWithError(t *testing.T) {
@@ -506,7 +506,7 @@ func TestLoggerPanicWithError(t *testing.T) {
 			// The first arg was an error, so Panic should re-panic with it
 			t.Logf("panic type = %T, value = %v (implementation re-panics with original error)", r, r)
 		}
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}()
 
 	l.Panic(testErr)

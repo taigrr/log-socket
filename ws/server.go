@@ -64,10 +64,10 @@ func LogSocketHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error("upgrade:", err)
 		return
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }() // Best-effort connection cleanup.
 
 	lc := logger.CreateClient(namespaces...)
-	defer lc.Destroy()
+	defer func() { _ = lc.Destroy() }() // Destroy currently always returns nil.
 	lc.SetLogLevel(logger.LTrace)
 	logger.Info("Websocket client attached.")
 
