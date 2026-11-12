@@ -24,7 +24,7 @@ func benchClient(ns string) (*Client, func()) {
 	}()
 	return c, func() {
 		close(done)
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}
 }
 
@@ -32,7 +32,7 @@ func benchClient(ns string) (*Client, func()) {
 func BenchmarkCreateClient(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		c := CreateClient("bench")
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}
 }
 

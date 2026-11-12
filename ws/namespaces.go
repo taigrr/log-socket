@@ -2,6 +2,7 @@ package ws
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	logger "github.com/taigrr/log-socket/v2/log"
@@ -11,7 +12,10 @@ import (
 func NamespacesHandler(w http.ResponseWriter, r *http.Request) {
 	namespaces := logger.GetNamespaces()
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
 		"namespaces": namespaces,
-	})
+	}); err != nil {
+		// A failed write may have committed the response already.
+		log.Printf("log-socket: write namespaces: %v", err)
+	}
 }

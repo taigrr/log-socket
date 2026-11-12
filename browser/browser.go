@@ -3,6 +3,7 @@ package browser
 import (
 	_ "embed"
 	"html/template"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -13,7 +14,10 @@ var webpage string
 func LogSocketViewHandler(w http.ResponseWriter, r *http.Request) {
 	wsResource := websocketScheme(r) + websocketHost(r) + r.URL.Path
 	wsResource = strings.TrimSuffix(wsResource, "/") + "/ws"
-	homeTemplate.Execute(w, wsResource)
+	if err := homeTemplate.Execute(w, wsResource); err != nil {
+		// The response may already be committed; do not append an HTTP error body.
+		log.Printf("log-socket: render viewer: %v", err)
+	}
 }
 
 func websocketScheme(r *http.Request) string {

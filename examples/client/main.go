@@ -58,6 +58,6 @@ func main() {
 	}
 
 	// Clean up clients when done
-	allLogs.Destroy()
-	securityLogs.Destroy()
+	_ = allLogs.Destroy()      // Destroy currently always returns nil.
+	_ = securityLogs.Destroy() // Destroy currently always returns nil.
 }

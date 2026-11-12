@@ -32,7 +32,7 @@ func TestCreateDestroy(t *testing.T) {
 		t.Errorf("Expected 2 clients, but found %d", len(clients))
 	}
 	// Destroy it and ensure it's actually removed from the array
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 	if len(clients) != 1 {
 		t.Errorf("Expected 1 client, but found %d", len(clients))
 	}
@@ -48,7 +48,7 @@ func TestSetLogLevel(t *testing.T) {
 			t.Errorf("Got logLevel %d, but expected %d", int(c.GetLogLevel()), int(x))
 		}
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func BenchmarkDebugSerial(b *testing.B) {
@@ -63,7 +63,7 @@ func BenchmarkDebugSerial(b *testing.B) {
 		}()
 	}
 	x.Wait()
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 // Trace ensure logs come out in the right order
@@ -78,7 +78,7 @@ func TestOrder(t *testing.T) {
 			t.Error("Trace input doesn't match output")
 		}
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestDebug(t *testing.T) {
@@ -99,7 +99,7 @@ func TestDebug(t *testing.T) {
 	if e.Namespace != DefaultNamespace {
 		t.Errorf("namespace = %q, want %q", e.Namespace, DefaultNamespace)
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestDebugf(t *testing.T) {
@@ -114,7 +114,7 @@ func TestDebugf(t *testing.T) {
 	if e.Output != "hello world 42" {
 		t.Errorf("output = %q, want %q", e.Output, "hello world 42")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestInfo(t *testing.T) {
@@ -132,7 +132,7 @@ func TestInfo(t *testing.T) {
 	if e.Output != "info message" {
 		t.Errorf("output = %q, want %q", e.Output, "info message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestInfof(t *testing.T) {
@@ -147,7 +147,7 @@ func TestInfof(t *testing.T) {
 	if e.Output != "count: 99" {
 		t.Errorf("output = %q, want %q", e.Output, "count: 99")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestPrint(t *testing.T) {
@@ -166,7 +166,7 @@ func TestPrint(t *testing.T) {
 	if e.Output != "print message" {
 		t.Errorf("output = %q, want %q", e.Output, "print message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestPrintf(t *testing.T) {
@@ -181,7 +181,7 @@ func TestPrintf(t *testing.T) {
 	if e.Output != "formatted print" {
 		t.Errorf("output = %q, want %q", e.Output, "formatted print")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestNotice(t *testing.T) {
@@ -196,7 +196,7 @@ func TestNotice(t *testing.T) {
 	if e.Level != "NOTICE" {
 		t.Errorf("level = %q, want NOTICE", e.Level)
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestWarn(t *testing.T) {
@@ -214,7 +214,7 @@ func TestWarn(t *testing.T) {
 	if e.Output != "warning message" {
 		t.Errorf("output = %q, want %q", e.Output, "warning message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestWarnf(t *testing.T) {
@@ -229,7 +229,7 @@ func TestWarnf(t *testing.T) {
 	if e.Output != "warn 1" {
 		t.Errorf("output = %q, want %q", e.Output, "warn 1")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestError(t *testing.T) {
@@ -247,7 +247,7 @@ func TestError(t *testing.T) {
 	if e.Output != "error message" {
 		t.Errorf("output = %q, want %q", e.Output, "error message")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestErrorf(t *testing.T) {
@@ -262,7 +262,7 @@ func TestErrorf(t *testing.T) {
 	if e.Output != "err: something broke" {
 		t.Errorf("output = %q, want %q", e.Output, "err: something broke")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 func TestPanic(t *testing.T) {
@@ -274,7 +274,7 @@ func TestPanic(t *testing.T) {
 		if r == nil {
 			t.Error("expected panic, got nil")
 		}
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}()
 
 	Panic("panic message")
@@ -289,7 +289,7 @@ func TestPanicf(t *testing.T) {
 		if r == nil {
 			t.Error("expected panic, got nil")
 		}
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}()
 
 	Panicf("panic %d", 42)
@@ -304,7 +304,7 @@ func TestPanicln(t *testing.T) {
 		if r == nil {
 			t.Error("expected panic, got nil")
 		}
-		c.Destroy()
+		_ = c.Destroy() // Destroy currently always returns nil.
 	}()
 
 	Panicln("panic line")
@@ -340,7 +340,7 @@ func TestLogLevelFiltering(t *testing.T) {
 	if e2.Output != "warn message" {
 		t.Errorf("expected 'warn message', got %q", e2.Output)
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 // TestNamespaceFiltering verifies clients only receive matching namespaces.
@@ -367,7 +367,7 @@ func TestNamespaceFiltering(t *testing.T) {
 	if e.Namespace != "api" {
 		t.Errorf("namespace = %q, want 'api'", e.Namespace)
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 // TestMultiNamespaceClient verifies a client subscribed to multiple namespaces.
@@ -398,7 +398,7 @@ func TestMultiNamespaceClient(t *testing.T) {
 	if e2.Output != "auth message" {
 		t.Errorf("second entry = %q, want 'auth message'", e2.Output)
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 // TestGetNamespaces verifies the namespace registry.
@@ -443,7 +443,7 @@ func TestGetNamespacesSorted(t *testing.T) {
 		t.Fatalf("missing namespace %q in %v", "sort-ns-charlie", nss)
 	}
 
-	if !(alphaIndex < bravoIndex && bravoIndex < charlieIndex) {
+	if alphaIndex >= bravoIndex || bravoIndex >= charlieIndex {
 		t.Fatalf("expected sorted namespace order, got %v", nss)
 	}
 }
@@ -467,7 +467,7 @@ func TestLoggerDebugln(t *testing.T) {
 	if e.Output != "debugln message\n" {
 		t.Errorf("output = %q, want %q", e.Output, "debugln message\n")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 // TestNewLoggerEmptyNamespace verifies empty namespace defaults to DefaultNamespace.
@@ -556,7 +556,7 @@ func TestBroadcast(t *testing.T) {
 	if got.Level != "WARN" {
 		t.Errorf("level = %q, want WARN", got.Level)
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 // TestMatchesNamespace verifies the namespace matching helper.
@@ -566,7 +566,7 @@ func TestMatchesNamespace(t *testing.T) {
 	if !c.matchesNamespace("anything") {
 		t.Error("empty Namespaces should match all")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 
 	// Client with specific namespaces
 	c2 := CreateClient("api", "auth")
@@ -579,12 +579,12 @@ func TestMatchesNamespace(t *testing.T) {
 	if c2.matchesNamespace("database") {
 		t.Error("should not match 'database'")
 	}
-	c2.Destroy()
+	_ = c2.Destroy() // Destroy currently always returns nil.
 }
 
 func TestCreateClientNormalizesNamespaces(t *testing.T) {
 	c := CreateClient(" api ", "", "auth", "api", "\t")
-	defer c.Destroy()
+	defer func() { _ = c.Destroy() }() // Destroy currently always returns nil.
 
 	want := []string{"api", "auth"}
 	if len(c.Namespaces) != len(want) {
@@ -599,7 +599,7 @@ func TestCreateClientNormalizesNamespaces(t *testing.T) {
 
 func TestCreateClientBlankNamespacesMatchAll(t *testing.T) {
 	c := CreateClient("", " ")
-	defer c.Destroy()
+	defer func() { _ = c.Destroy() }() // Destroy currently always returns nil.
 
 	if len(c.Namespaces) != 0 {
 		t.Fatalf("blank namespaces should normalize to all namespaces, got %#v", c.Namespaces)
@@ -612,7 +612,7 @@ func TestCreateClientBlankNamespacesMatchAll(t *testing.T) {
 func TestCreateClientCopiesNamespaceFilters(t *testing.T) {
 	namespaces := []string{"api"}
 	c := CreateClient(namespaces...)
-	defer c.Destroy()
+	defer func() { _ = c.Destroy() }() // Destroy currently always returns nil.
 
 	namespaces[0] = "auth"
 	if !c.matchesNamespace("api") {
@@ -635,7 +635,7 @@ func TestGetContext(t *testing.T) {
 	if ok {
 		t.Error("expected GetContext to return false on cancelled context")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 // TestGetContextReceivesEntry verifies GetContext delivers entries normally.
@@ -658,7 +658,7 @@ func TestGetContextReceivesEntry(t *testing.T) {
 	if e.Output != "context entry" {
 		t.Errorf("output = %q, want %q", e.Output, "context entry")
 	}
-	c.Destroy()
+	_ = c.Destroy() // Destroy currently always returns nil.
 }
 
 // TestLevelString verifies the Level.String() method.
