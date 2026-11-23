@@ -92,7 +92,11 @@ func LogSocketHandler(w http.ResponseWriter, r *http.Request) {
 			// Context cancelled — client disconnected.
 			return
 		}
-		logJSON, _ := json.Marshal(entry)
+		logJSON, err := json.Marshal(entry)
+		if err != nil {
+			logger.Warn("marshal log entry:", err)
+			continue
+		}
 		if err := conn.WriteMessage(websocket.TextMessage, logJSON); err != nil {
 			logger.Warn("write:", err)
 			return

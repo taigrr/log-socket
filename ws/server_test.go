@@ -230,3 +230,25 @@ func waitForWebSocketEntryWithDeadline(t *testing.T, conn *websocket.Conn, timeo
 		}
 	}
 }
+
+func TestLogSocketHandler_SkipsUnencodableEntry(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(LogSocketHandler))
+	defer server.Close()
+	conn, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL, "http"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = conn.Close() }()
+	waitForWebSocketEntryWithDeadline(t, conn, 2*time.Second, func(entry logger.Entry) bool {
+		return entry.Output == "Websocket client attached."
+	})
+	// time.Time cannot be encoded as JSON with a year outside [0,9999].
+	logger.Broadcast(logger.Entry{Timestamp: time.Date(10000, 1, 1, 0, 0, 0, 0, time.UTC), Output: "invalid timestamp", Level: "INFO", Namespace: "encoding-test"})
+	logger.NewLogger("encoding-test").Info("valid entry after invalid timestamp")
+	entry := waitForWebSocketEntryWithDeadline(t, conn, 2*time.Second, func(entry logger.Entry) bool {
+		return entry.Namespace == "encoding-test"
+	})
+	if entry.Output != "valid entry after invalid timestamp" {
+		t.Fatalf("output = %q", entry.Output)
+	}
+}
