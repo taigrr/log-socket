@@ -22,7 +22,7 @@ import (
 type Handler struct {
 	namespace string
 	level     slog.Level
-	attrs     []handlerAttr
+	attrs     string
 	groups    []string
 }
 
@@ -31,11 +31,6 @@ var _ slog.Handler = (*Handler)(nil)
 
 // Option configures a [Handler].
 type Option func(*Handler)
-
-type handlerAttr struct {
-	groups []string
-	attr   slog.Attr
-}
 
 // WithNamespace sets the log-socket namespace for entries produced by this
 // handler.  If empty, [log.DefaultNamespace] is used.
@@ -80,9 +75,7 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 	b.WriteString(r.Message)
 
 	// Append pre-collected attrs.
-	for _, a := range h.attrs {
-		writeAttr(&b, a.groups, a.attr)
-	}
+	b.WriteString(h.attrs)
 
 	// Append record-level attrs.
 	r.Attrs(func(a slog.Attr) bool {
@@ -117,12 +110,14 @@ func (h *Handler) Handle(_ context.Context, r slog.Record) error {
 // WithAttrs returns a new Handler with the given attributes appended.
 func (h *Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	h2 := h.clone()
+	// Format once so attached LogValuers are resolved at With time, not on
+	// each Handle call. The immutable string is safe to share across clones.
+	var formatted strings.Builder
+	formatted.WriteString(h.attrs)
 	for _, attr := range attrs {
-		h2.attrs = append(h2.attrs, handlerAttr{
-			groups: append([]string(nil), h.groups...),
-			attr:   attr,
-		})
+		writeAttr(&formatted, h.groups, attr)
 	}
+	h2.attrs = formatted.String()
 	return h2
 }
 
@@ -141,12 +136,8 @@ func (h *Handler) clone() *Handler {
 	h2 := &Handler{
 		namespace: h.namespace,
 		level:     h.level,
-		attrs:     make([]handlerAttr, len(h.attrs)),
+		attrs:     h.attrs,
 		groups:    make([]string, len(h.groups)),
-	}
-	copy(h2.attrs, h.attrs)
-	for i := range h2.attrs {
-		h2.attrs[i].groups = append([]string(nil), h.attrs[i].groups...)
 	}
 	copy(h2.groups, h.groups)
 	return h2
