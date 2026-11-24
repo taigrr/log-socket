@@ -198,3 +198,50 @@ func TestHandler_GroupAttrs(t *testing.T) {
 		}
 	}
 }
+
+// mutableValue exposes whether With resolves LogValuers before later mutations.
+type mutableValue struct {
+	value string
+	calls int
+}
+
+func (v *mutableValue) LogValue() slog.Value {
+	v.calls++
+	return slog.StringValue(v.value)
+}
+
+func TestHandlerWithAttrsSnapshotsValues(t *testing.T) {
+	for _, grouped := range []bool{false, true} {
+		t.Run(fmt.Sprintf("grouped=%t", grouped), func(t *testing.T) {
+			client := log.CreateClient("snapshot")
+			defer func() { _ = client.Destroy() }()
+			value := &mutableValue{value: "before"}
+			attr := slog.Any("value", value)
+			want := "message value=before"
+			if grouped {
+				attr = slog.Group("outer", slog.Group("inner", attr))
+				want = "message outer.inner.value=before"
+			}
+			logger := slog.New(NewHandler(WithNamespace("snapshot"))).With(attr)
+			if value.calls != 1 {
+				t.Errorf("LogValue calls after With = %d, want 1", value.calls)
+			}
+			value.value = "after"
+			for range 2 {
+				logger.Info("message")
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+				entry, ok := client.GetContext(ctx)
+				cancel()
+				if !ok {
+					t.Fatal("timed out waiting for entry")
+				}
+				if entry.Output != want {
+					t.Errorf("output = %q, want %q", entry.Output, want)
+				}
+			}
+			if value.calls != 1 {
+				t.Errorf("LogValue calls after logging = %d, want 1", value.calls)
+			}
+		})
+	}
+}
